@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Undo2, Redo2, History, Download, Menu } from 'lucide-react'
@@ -8,8 +9,32 @@ interface TopNavProps {
   projectId: string
 }
 
+interface Project {
+  id: string
+  name: string
+  nodeCount: number
+  updatedAt: string
+}
+
 export function TopNav({ projectId }: TopNavProps) {
   const router = useRouter()
+  const [project, setProject] = useState<Project | null>(null)
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setProject(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch project:', error)
+      }
+    }
+
+    fetchProject()
+  }, [projectId])
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4">
@@ -17,13 +42,13 @@ export function TopNav({ projectId }: TopNavProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/create-project')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         
         <div>
-          <h1 className="text-lg font-semibold">Customer Query Analysis</h1>
+          <h1 className="text-lg font-semibold">{project?.name || 'Loading...'}</h1>
           <p className="text-xs text-muted-foreground">Project ID: {projectId}</p>
         </div>
       </div>

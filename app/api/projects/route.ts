@@ -1,29 +1,9 @@
 import { NextResponse } from 'next/server'
-
-// Mock data for demonstration
-const mockProjects = [
-  {
-    id: '1',
-    name: 'Customer Query Analysis',
-    nodeCount: 24,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Medical Diagnosis Review',
-    nodeCount: 18,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Code Analysis Trace',
-    nodeCount: 42,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-  },
-]
+import { mockProjectsStore } from '@/lib/mock-projects'
 
 export async function GET() {
-  return NextResponse.json(mockProjects)
+  const projects = Object.values(mockProjectsStore)
+  return NextResponse.json(projects)
 }
 
 export async function POST(request: Request) {
@@ -34,7 +14,11 @@ export async function POST(request: Request) {
     name: body.name || 'New Analysis',
     nodeCount: 0,
     updatedAt: new Date().toISOString(),
+    response: '',
   }
+  
+  // Store the new project in the shared store
+  mockProjectsStore[newProject.id] = newProject
   
   return NextResponse.json(newProject)
 }

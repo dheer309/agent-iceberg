@@ -27,6 +27,13 @@ const nodeTypes: NodeTypes = {
   user: UserNode,
 }
 
+interface Project {
+  id: string
+  name: string
+  nodeCount: number
+  updatedAt: string
+}
+
 interface GraphCanvasProps {
   projectId: string
   onNodeSelect: (nodeId: string) => void
@@ -36,6 +43,7 @@ export function GraphCanvas({ projectId, onNodeSelect }: GraphCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [loading, setLoading] = useState(true)
+  const [project, setProject] = useState<Project | null>(null)
 
   useEffect(() => {
     const fetchGraph = async () => {
@@ -55,6 +63,22 @@ export function GraphCanvas({ projectId, onNodeSelect }: GraphCanvasProps) {
 
     fetchGraph()
   }, [projectId, setNodes, setEdges])
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setProject(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch project:', error)
+      }
+    }
+
+    fetchProject()
+  }, [projectId])
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -77,7 +101,16 @@ export function GraphCanvas({ projectId, onNodeSelect }: GraphCanvasProps) {
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full relative">
+      {/* Project Name Display - Main Panel Header */}
+      {project && (
+        <div className="absolute top-4 left-4 z-10 px-4 py-2 rounded-lg bg-black/60 backdrop-blur-md border border-white/10">
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            {project.name}
+          </h2>
+        </div>
+      )}
+      
       <ReactFlow
         nodes={nodes}
         edges={edges}
