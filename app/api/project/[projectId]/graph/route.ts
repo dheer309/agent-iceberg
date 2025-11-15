@@ -56,10 +56,11 @@ const mockGraph = {
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
-  const { id } = await params
-  console.log('[v0] Fetching graph for project:', id)
+  const { projectId } = await params
+  console.log('[v0] Fetching graph for project:', projectId)
   
   return NextResponse.json(mockGraph)
 }
+
