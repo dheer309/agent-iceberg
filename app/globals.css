@@ -1,55 +1,60 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+
   /* Core black background */
   --color-background: #000000;
   --color-foreground: #ffffff;
-  
+
   /* Neon purple accent (primary) */
   --color-primary: #8b5cf6;
   --color-primary-foreground: #ffffff;
-  
+
   /* Neon blue accent (secondary) */
   --color-secondary: #3b82f6;
   --color-secondary-foreground: #ffffff;
-  
+
   /* Accent colors for status */
   --color-accent: #1e1e1e;
   --color-accent-foreground: #ffffff;
-  
+
   /* Muted dark grays */
   --color-muted: #1a1a1a;
   --color-muted-foreground: #a1a1aa;
-  
+
   /* Card backgrounds with slight gray */
   --color-card: #0a0a0a;
   --color-card-foreground: #ffffff;
-  
+
   /* Popover/dialog backgrounds */
   --color-popover: #0f0f0f;
   --color-popover-foreground: #ffffff;
-  
+
   /* Border colors - subtle gray */
   --color-border: #27272a;
   --color-input: #27272a;
   --color-ring: #8b5cf6;
-  
+
   /* Destructive red */
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  
+
   /* Node type colors */
   --color-node-model: #3b82f6;
   --color-node-tool: #10b981;
   --color-node-branch: #f59e0b;
   --color-node-user: #8b5cf6;
   --color-node-disabled: #52525b;
-  
+
   /* Radius */
   --radius: 0.5rem;
+}
+
+/* Standard text color */
+body {
+  color: #ffffff;
 }
 
 /* Neon glow effects */
