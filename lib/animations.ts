@@ -10,6 +10,13 @@ export const containerVariants: Variants = {
       delayChildren: 0.1,
     },
   },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.1,
+      staggerDirection: -1,
+    },
+  },
 }
 
 // Child variants for fade + slide up
@@ -21,6 +28,14 @@ export const childVariants: Variants = {
     transition: {
       duration: 0.5,
       ease: "easeOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: 20,
+    transition: {
+      duration: 0.5,
+      ease: "easeIn",
     },
   },
 }
@@ -36,6 +51,14 @@ export const fadeInLeft: Variants = {
       ease: "easeOut",
     },
   },
+  exit: {
+    opacity: 0,
+    x: -40,
+    transition: {
+      duration: 0.6,
+      ease: "easeIn",
+    },
+  },
 }
 
 // Fade in from right
@@ -47,6 +70,14 @@ export const fadeInRight: Variants = {
     transition: {
       duration: 0.6,
       ease: "easeOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: 40,
+    transition: {
+      duration: 0.6,
+      ease: "easeIn",
     },
   },
 }
@@ -62,6 +93,14 @@ export const fadeInUp: Variants = {
       ease: "easeOut",
     },
   },
+  exit: {
+    opacity: 0,
+    y: 40,
+    transition: {
+      duration: 0.6,
+      ease: "easeIn",
+    },
+  },
 }
 
 // Scale in animation
@@ -75,11 +114,19 @@ export const scaleIn: Variants = {
       ease: "easeOut",
     },
   },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: {
+      duration: 0.5,
+      ease: "easeIn",
+    },
+  },
 }
 
 // Viewport configuration for scroll-triggered animations
 export const viewportConfig = {
-  once: true,
+  once: false,
   amount: 0.3,
   margin: "0px 0px -100px 0px",
 } as const
@@ -91,6 +138,13 @@ export const staggerContainer: Variants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.1,
+      staggerDirection: -1,
     },
   },
 }

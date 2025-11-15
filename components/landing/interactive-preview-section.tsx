@@ -16,7 +16,7 @@ import { ModelNode } from "@/components/model-node"
 import { ToolNode } from "@/components/tool-node"
 import { BranchNode } from "@/components/branch-node"
 import { UserNode } from "@/components/user-node"
-import { fadeInUp, viewportConfig } from "@/lib/animations"
+import { staggerContainer, childVariants, viewportConfig } from "@/lib/animations"
 
 const nodeTypes: NodeTypes = {
   model: ModelNode,
@@ -105,28 +105,32 @@ export function InteractivePreviewSection() {
           initial="hidden"
           whileInView="visible"
           viewport={viewportConfig}
-          variants={fadeInUp}
-          className="mb-12 text-center"
+          variants={staggerContainer}
         >
-          <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-            Interactive{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Workspace
-            </span>
-          </h2>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+          <motion.div
+            variants={childVariants}
+            className="mb-12 text-center"
+          >
+            <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
+              Interactive{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Workspace
+              </span>
+            </h2>
+          </motion.div>
+
+          <motion.p
+            variants={childVariants}
+            className="mx-auto mb-12 max-w-2xl text-center text-lg text-muted-foreground"
+          >
             Explore a live preview of the platform. Click nodes to inspect, modify, and see how
             changes propagate through the graph.
-          </p>
-        </motion.div>
+          </motion.p>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
-          variants={fadeInUp}
-          className="relative"
-        >
+          <motion.div
+            variants={childVariants}
+            className="relative"
+          >
           {/* Animated border with glow */}
           <div className="relative rounded-lg border-2 border-primary/50 bg-card p-1 shadow-2xl shadow-primary/20">
             {/* Inner glow */}
@@ -170,6 +174,7 @@ export function InteractivePreviewSection() {
 
           {/* Outer glow effect */}
           <div className="absolute -inset-4 -z-10 rounded-lg bg-primary/10 blur-2xl" />
+          </motion.div>
         </motion.div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { fadeInUp, viewportConfig } from "@/lib/animations"
+import { staggerContainer, childVariants, viewportConfig } from "@/lib/animations"
 import { Play, BookOpen, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -20,10 +20,10 @@ export function GetStartedSection() {
           initial="hidden"
           whileInView="visible"
           viewport={viewportConfig}
-          variants={fadeInUp}
+          variants={staggerContainer}
           className="space-y-8"
         >
-          <div className="space-y-4">
+          <motion.div variants={childVariants} className="space-y-4">
             <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
               Get Started in{" "}
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -33,9 +33,12 @@ export function GetStartedSection() {
             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
               Start visualizing AI reasoning today. No technical knowledge required.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <motion.div
+            variants={childVariants}
+            className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+          >
             <Button
               size="lg"
               onClick={handleCreateProject}
@@ -64,7 +67,7 @@ export function GetStartedSection() {
               <BookOpen className="h-5 w-5" />
               <span>Documentation</span>
             </Button>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

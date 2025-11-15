@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { fadeInLeft, fadeInRight, viewportConfig } from "@/lib/animations"
+import { fadeInLeft, staggerContainer, childVariants, viewportConfig } from "@/lib/animations"
 import { Network } from "lucide-react"
 
 export function WhatIsSection() {
@@ -80,17 +80,23 @@ export function WhatIsSection() {
             initial="hidden"
             whileInView="visible"
             viewport={viewportConfig}
-            variants={fadeInRight}
+            variants={staggerContainer}
             className="space-y-6"
           >
-            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            <motion.h2
+              variants={childVariants}
+              className="text-4xl font-bold tracking-tight sm:text-5xl"
+            >
               Understand How AI{" "}
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Thinks
               </span>
               —Visually.
-            </h2>
-            <div className="space-y-4 text-lg text-muted-foreground">
+            </motion.h2>
+            <motion.div
+              variants={childVariants}
+              className="space-y-4 text-lg text-muted-foreground"
+            >
               <p>
                 This platform reveals an AI model&apos;s reasoning steps as an interactive graph.
                 Explore every decision, tool call, and branch point.
@@ -99,7 +105,7 @@ export function WhatIsSection() {
                 Modify steps and regenerate the outcome instantly. See how small changes cascade
                 through the entire reasoning process.
               </p>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
