@@ -1,14 +1,12 @@
-"""Builds the holistic multi-agent network."""
+"""Builds the holistic multi-agent network with pause/resume controls."""
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional, Iterable
+from typing import Any, Dict, Iterable, Optional
 
-# --- IMPORT TRACEABLE FOR LANGSMITH ---
 from langsmith import traceable
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableSequence
 
@@ -20,10 +18,16 @@ from .config import Settings, configure_langsmith, get_settings
 from .clients import HolisticAIChatModel
 from .tools import ValyuSearchTool, build_component_catalog_tool
 
+EXECUTION_ORDER = [
+    "valyu_search",
+    "research_agent",
+    "logic_agent",
+    "validation_agent",
+]
+
 
 @dataclass
 class PipelineArtifacts:
-    # ... (no change to this class) ...
     settings: Settings
     llm: RunnableSequence
     search_tool: ValyuSearchTool
@@ -33,188 +37,312 @@ class PipelineArtifacts:
     validation_agent: ValidationAgent
 
 
+@dataclass
+class PipelineState:
+    query: str
+    created_at: str
+    pipeline_graph: Dict[str, Any]
+    sequence: list[str]
+    next_stage_index: int = 0
+    agent_outputs: Dict[str, Any] = field(default_factory=dict)
+    search_packet: Optional[Dict[str, Any]] = None
+    research_content: Optional[str] = None
+    research_json: Optional[Dict[str, Any]] = None
+    logic_content: Optional[str] = None
+    logic_json: Optional[Dict[str, Any]] = None
+    validation_content: Optional[str] = None
+    validation_json: Optional[Dict[str, Any]] = None
+    overrides: Dict[str, Any] = field(default_factory=dict)
+    disabled_nodes: list[str] = field(default_factory=list)
+
+    def is_complete(self) -> bool:
+        return self.next_stage_index >= len(self.sequence)
+
+    def pending_stage(self) -> Optional[str]:
+        if self.is_complete():
+            return None
+        return self.sequence[self.next_stage_index]
+
+    def advance(self) -> None:
+        self.next_stage_index += 1
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "query": self.query,
+            "created_at": self.created_at,
+            "pipeline_graph": self.pipeline_graph,
+            "sequence": self.sequence,
+            "next_stage_index": self.next_stage_index,
+            "agent_outputs": self.agent_outputs,
+            "search_packet": self.search_packet,
+            "research_content": self.research_content,
+            "research_json": self.research_json,
+            "logic_content": self.logic_content,
+            "logic_json": self.logic_json,
+            "validation_content": self.validation_content,
+            "validation_json": self.validation_json,
+            "overrides": self.overrides,
+            "disabled_nodes": self.disabled_nodes,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PipelineState":
+        return cls(
+            query=data["query"],
+            created_at=data["created_at"],
+            pipeline_graph=data.get("pipeline_graph", {}),
+            sequence=data.get("sequence", []),
+            next_stage_index=data.get("next_stage_index", 0),
+            agent_outputs=data.get("agent_outputs", {}),
+            search_packet=data.get("search_packet"),
+            research_content=data.get("research_content"),
+            research_json=data.get("research_json"),
+            logic_content=data.get("logic_content"),
+            logic_json=data.get("logic_json"),
+            validation_content=data.get("validation_content"),
+            validation_json=data.get("validation_json"),
+            overrides=data.get("overrides", {}),
+            disabled_nodes=data.get("disabled_nodes", []),
+        )
+
+    def build_payload(self) -> Dict[str, Any]:
+        final_answer = (
+            self.logic_content
+            or self.research_content
+            or (json.dumps(self.search_packet, indent=2) if self.search_packet else "")
+        )
+        return {
+            "query": self.query,
+            "created_at": self.created_at,
+            "pipeline_graph": self.pipeline_graph,
+            "agents": self.agent_outputs,
+            "final_answer": final_answer,
+            "validation": self.validation_content,
+        }
+
+
 class MultiAgentPipeline:
     def __init__(self, artifacts: PipelineArtifacts) -> None:
         self._artifacts = artifacts
 
-    # We add @traceable to make the *entire run* show up in LangSmith
     @traceable(run_type="chain", name="MultiAgentPipeline.run")
     def run(self, query: str) -> Dict[str, Any]:
-        """
-        This is your original, blocking method. We keep it.
-        We just add the @traceable decorator.
-        """
-        timestamp = datetime.utcnow().isoformat() + "Z"
-        
-        # --- These sub-runs will be traced IF they are also wrapped ---
-        # --- We assume the .run() methods of your agents are traceable ---
-        plan = self._artifacts.pipeline_designer.run(query)
-        graph_data = plan.metadata.get("graph", {})
-        sequence = self._normalized_sequence(graph_data.get("recommended_sequence"))
-
-        search_packet = None
-        research = None
-        logic = None
-        validation = None
-        agents_payload: Dict[str, Any] = {"pipeline_designer": plan.to_json()}
-
-        if "valyu_search" in sequence:
-            search_packet = self._artifacts.search_tool.run(query)
-            agents_payload["valyu_search"] = search_packet
-
-        if "research_agent" in sequence:
-            if search_packet is None:
-                search_packet = self._artifacts.search_tool.run(query)
-                agents_payload["valyu_search"] = search_packet
-            research = self._artifacts.research_agent.run(
-                query=query, search_data=search_packet
-            )
-            agents_payload["research"] = research.to_json()
-
-        if "logic_agent" in sequence and research:
-            logic = self._artifacts.logic_agent.run(
-                query=query,
-                research_summary=research.content,
-            )
-            agents_payload["logic"] = logic.to_json()
-
-        if "validation_agent" in sequence and logic and research:
-            validation = self._artifacts.validation_agent.run(
-                query=query,
-                proposed_answer=logic.content,
-                research_summary=research.content,
-            )
-            agents_payload["validation"] = validation.to_json()
-
-        final_answer = (
-            logic.content
-            if logic
-            else research.content
-            if research
-            else json.dumps(search_packet, indent=2) if search_packet else ""
-        )
-        payload = {
-            "query": query,
-            "created_at": timestamp,
-            "pipeline_graph": graph_data,
-            "agents": agents_payload,
-            "final_answer": final_answer,
-            "validation": validation.content if validation else None,
-        }
-        return payload
-
-    # --- THIS IS YOUR NEW STREAMING METHOD ---
-    @traceable(run_type="chain", name="MultiAgentPipeline.stream")
-    def stream(self, query: str) -> Iterable[Dict[str, Any]]:
-        """
-        A new, real-time generator method.
-        It runs the same logic as run() but yields each step's
-        result as soon as it's finished.
-        """
-        timestamp = datetime.utcnow().isoformat() + "Z"
-
-        # Step 1: Run Planner
-        plan = self._artifacts.pipeline_designer.run(query)
-        plan_json = plan.to_json()
-        yield {"pipeline_designer": plan_json}
-
-        graph_data = plan.metadata.get("graph", {})
-        sequence = self._normalized_sequence(graph_data.get("recommended_sequence"))
-
-        search_packet = None
-        research = None
-        logic = None
-        validation = None
-        
-        # Step 2: Run Search (if needed)
-        if "valyu_search" in sequence:
-            search_packet = self._artifacts.search_tool.run(query)
-            yield {"valyu_search": search_packet}
-
-        # Step 3: Run Research (if needed)
-        if "research_agent" in sequence:
-            if search_packet is None:
-                search_packet = self._artifacts.search_tool.run(query)
-                yield {"valyu_search": search_packet}
-            
-            research = self._artifacts.research_agent.run(
-                query=query, search_data=search_packet
-            )
-            yield {"research_agent": research.to_json()}
-
-        # Step 4: Run Logic (if needed)
-        if "logic_agent" in sequence and research:
-            logic = self._artifacts.logic_agent.run(
-                query=query,
-                research_summary=research.content,
-            )
-            yield {"logic_agent": logic.to_json()}
-
-        # Step 5: Run Validation (if needed)
-        if "validation_agent" in sequence and logic and research:
-            validation = self._artifacts.validation_agent.run(
-                query=query,
-                proposed_answer=logic.content,
-                research_summary=research.content,
-            )
-            yield {"validation_agent": validation.to_json()}
-
-        # Step 6: Yield the final, complete payload
-        final_answer = (
-            logic.content
-            if logic
-            else research.content
-            if research
-            else json.dumps(search_packet, indent=2) if search_packet else ""
-        )
-        payload = {
-            "query": query,
-            "created_at": timestamp,
-            "pipeline_graph": graph_data,
-            # Note: We can't build the full 'agents_payload' in a stream
-            # This final payload is a summary.
-            "final_answer": final_answer,
-            "validation": validation.content if validation else None,
-        }
-        yield {"final_payload": payload}
+        state = self.initialize_state(query)
+        state = self.run_until_complete(state)
+        return state.build_payload()
 
     def run_as_json(self, query: str, indent: Optional[int] = None) -> str:
-        # ... (no change to this method) ...
+        payload = self.run(query)
         indent = indent if indent is not None else self._artifacts.settings.json_indent
-        return json.dumps(self.run(query), indent=indent)
+        return json.dumps(payload, indent=indent)
+
+    @traceable(run_type="chain", name="MultiAgentPipeline.stream")
+    def stream(self, query: str) -> Iterable[Dict[str, Any]]:
+        state = self.initialize_state(query)
+        yield {"pipeline_designer": state.agent_outputs["pipeline_designer"]}
+        while not state.is_complete():
+            stage = state.pending_stage()
+            if stage is None:
+                break
+            self.step(state)
+            payload = state.agent_outputs.get(stage)
+            if payload is not None:
+                yield {stage: payload}
+        yield {"final_payload": state.build_payload()}
+
+    def initialize_state(self, query: str) -> PipelineState:
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        plan = self._artifacts.pipeline_designer.run(query)
+        graph_data = plan.metadata.get("graph", {})
+        sequence = self._normalized_sequence(graph_data.get("recommended_sequence"))
+        state = PipelineState(
+            query=query,
+            created_at=timestamp,
+            pipeline_graph=graph_data,
+            sequence=sequence,
+            agent_outputs={"pipeline_designer": plan.to_json()},
+        )
+        self._sync_graph_sequence(state)
+        return state
+
+    def run_until_complete(self, state: PipelineState) -> PipelineState:
+        while not state.is_complete():
+            self.step(state)
+        return state
+
+    def run_steps(self, state: PipelineState, steps: int) -> PipelineState:
+        executed = 0
+        while executed < steps and not state.is_complete():
+            self.step(state)
+            executed += 1
+        return state
+
+    def resume(self, state: PipelineState) -> PipelineState:
+        return self.run_until_complete(state)
+
+    def step(self, state: PipelineState) -> PipelineState:
+        stage = state.pending_stage()
+        if stage is None:
+            return state
+        self._execute_node(state, stage, use_override=True)
+        state.advance()
+        return state
+
+    def regenerate_node(self, state: PipelineState, node_id: str) -> PipelineState:
+        if node_id not in EXECUTION_ORDER:
+            return state
+        self._invalidate_downstream(state, node_id)
+        self._execute_node(state, node_id, use_override=False)
+        return state
+
+    def set_node_input(self, state: PipelineState, node_id: str, user_payload: Any) -> PipelineState:
+        state.overrides[node_id] = user_payload
+        self._invalidate_downstream(state, node_id)
+        self._execute_node(state, node_id, use_override=True)
+        return state
+
+    def disable_node(self, state: PipelineState, node_id: str) -> PipelineState:
+        if node_id not in EXECUTION_ORDER:
+            return state
+        if node_id in state.sequence:
+            index = state.sequence.index(node_id)
+            self._invalidate_downstream(state, node_id)
+            state.sequence.pop(index)
+            if state.next_stage_index > index:
+                state.next_stage_index = index
+        if node_id not in state.disabled_nodes:
+            state.disabled_nodes.append(node_id)
+        self._remove_node_from_graph(state, node_id)
+        self._sync_graph_sequence(state)
+        return state
+
+    def _execute_node(self, state: PipelineState, node_id: str, use_override: bool) -> None:
+        override = state.overrides.get(node_id) if use_override else None
+        if node_id == "valyu_search":
+            self._execute_valyu_search(state, override)
+        elif node_id == "research_agent":
+            self._execute_research(state, override)
+        elif node_id == "logic_agent":
+            self._execute_logic(state, override)
+        elif node_id == "validation_agent":
+            self._execute_validation(state, override)
+
+    def _execute_valyu_search(self, state: PipelineState, override: Any = None) -> None:
+        packet = override if override is not None else self._artifacts.search_tool.run(state.query)
+        state.search_packet = packet
+        state.agent_outputs["valyu_search"] = packet
+
+    def _execute_research(self, state: PipelineState, override: Any = None) -> None:
+        if override is not None:
+            payload, content = self._normalize_override("ResearchAgent", override)
+        else:
+            research = self._artifacts.research_agent.run(
+                query=state.query,
+                search_data=state.search_packet,
+            )
+            payload = research.to_json()
+            content = research.content
+        state.research_content = content
+        state.research_json = payload
+        state.agent_outputs["research_agent"] = payload
+
+    def _execute_logic(self, state: PipelineState, override: Any = None) -> None:
+        if override is not None:
+            payload, content = self._normalize_override("LogicAgent", override)
+        else:
+            logic = self._artifacts.logic_agent.run(
+                query=state.query,
+                research_summary=state.research_content or "",
+            )
+            payload = logic.to_json()
+            content = logic.content
+        state.logic_content = content
+        state.logic_json = payload
+        state.agent_outputs["logic_agent"] = payload
+
+    def _execute_validation(self, state: PipelineState, override: Any = None) -> None:
+        if override is not None:
+            payload, content = self._normalize_override("ValidationAgent", override)
+        else:
+            validation = self._artifacts.validation_agent.run(
+                query=state.query,
+                proposed_answer=state.logic_content or "",
+                research_summary=state.research_content or "",
+            )
+            payload = validation.to_json()
+            content = validation.content
+        state.validation_content = content
+        state.validation_json = payload
+        state.agent_outputs["validation_agent"] = payload
+
+    @staticmethod
+    def _normalize_override(node_name: str, override: Any) -> tuple[Dict[str, Any], str]:
+        if isinstance(override, dict):
+            return override, str(override.get("content", ""))
+        content = str(override)
+        return {
+            "name": node_name,
+            "role": "agent",
+            "content": content,
+            "metadata": {"override": True},
+        }, content
+
+    def _invalidate_downstream(self, state: PipelineState, node_id: str) -> None:
+        if node_id not in state.sequence:
+            return
+        index = state.sequence.index(node_id)
+        for target in state.sequence[index:]:
+            self._clear_node_output(state, target)
+        if state.next_stage_index > index:
+            state.next_stage_index = index
+
+    def _clear_node_output(self, state: PipelineState, node_id: str) -> None:
+        state.agent_outputs.pop(node_id, None)
+        if node_id == "valyu_search":
+            state.search_packet = None
+        elif node_id == "research_agent":
+            state.research_content = None
+            state.research_json = None
+        elif node_id == "logic_agent":
+            state.logic_content = None
+            state.logic_json = None
+        elif node_id == "validation_agent":
+            state.validation_content = None
+            state.validation_json = None
+
+    def _remove_node_from_graph(self, state: PipelineState, node_id: str) -> None:
+        graph = state.pipeline_graph
+        nodes = graph.get("nodes") or []
+        graph["nodes"] = [node for node in nodes if node.get("id") != node_id]
+        edges = graph.get("edges") or []
+        graph["edges"] = [
+            edge
+            for edge in edges
+            if edge.get("source") != node_id and edge.get("target") != node_id
+        ]
+
+    def _sync_graph_sequence(self, state: PipelineState) -> None:
+        state.pipeline_graph["recommended_sequence"] = state.sequence[:]
 
     @staticmethod
     def _normalized_sequence(sequence: Optional[Any]) -> list[str]:
-        # ... (no change to this method) ...
-        default_sequence = [
-            "valyu_search",
-            "research_agent",
-            "logic_agent",
-            "validation_agent",
-        ]
         if not sequence or not isinstance(sequence, list):
-            return default_sequence
-        filtered = [node for node in sequence if node in default_sequence]
-        return filtered or default_sequence
+            return EXECUTION_ORDER.copy()
+        filtered = [node for node in sequence if node in EXECUTION_ORDER]
+        return filtered or EXECUTION_ORDER.copy()
 
 
 def build_pipeline(settings: Optional[Settings] = None) -> MultiAgentPipeline:
-    # ... (no change to this function) ...
     settings = settings or get_settings()
     configure_langsmith(settings)
 
     llm = build_holistic_llm(settings)
     search_tool = ValyuSearchTool(settings)
     catalog_tool = build_component_catalog_tool(settings)
-    pipeline_designer = PipelineDesignAgent(
-        llm=llm,
-        tools=[catalog_tool],
-    )
+    pipeline_designer = PipelineDesignAgent(llm=llm, tools=[catalog_tool])
     research_agent = ResearchAgent(llm=llm, search_tool=search_tool, settings=settings)
     logic_agent = LogicAgent(llm=llm, settings=settings)
-    validation_agent = ValidationAgent(
-        llm=llm, search_tool=search_tool, settings=settings
-    )
+    validation_agent = ValidationAgent(llm=llm, search_tool=search_tool, settings=settings)
     artifacts = PipelineArtifacts(
         settings=settings,
         llm=llm,
@@ -228,8 +356,7 @@ def build_pipeline(settings: Optional[Settings] = None) -> MultiAgentPipeline:
 
 
 def build_holistic_llm(settings: Settings) -> BaseChatModel:
-    # ... (no change to this function) ...
     return HolisticAIChatModel(settings=settings)
 
 
-__all__ = ["MultiAgentPipeline", "build_pipeline"]
+__all__ = ["MultiAgentPipeline", "PipelineState", "build_pipeline"]
