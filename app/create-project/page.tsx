@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { ProjectSidebar } from "@/components/project-sidebar";
+import { CreateProjectModal } from "@/components/create-project-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Loader2, Sparkles, Send } from "lucide-react";
+import { Menu, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function CreateProjectPage() {
@@ -15,14 +16,13 @@ export default function CreateProjectPage() {
   const [projectName, setProjectName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
   const [selectedProjectResponse, setSelectedProjectResponse] =
     useState<string>("");
   const [showInputBar, setShowInputBar] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch project response when a project is selected
   useEffect(() => {
@@ -45,30 +45,20 @@ export default function CreateProjectPage() {
     }
   }, [selectedProjectId]);
 
-  // Focus input when modal opens
-  useEffect(() => {
-    if (showModal && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [showModal]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!projectName.trim() || isLoading) return;
-
+  const handleCreateProject = async (name: string) => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: projectName.trim() }),
+        body: JSON.stringify({ name }),
       });
 
       if (response.ok) {
         const project = await response.json();
         setShowInputBar(true);
         setShowModal(false);
+        setProjectName(name);
         // Don't navigate, stay on this page
       } else {
         console.error("Failed to create project");
@@ -77,12 +67,6 @@ export default function CreateProjectPage() {
     } catch (error) {
       console.error("Failed to create project:", error);
       setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !isLoading) {
-      handleSubmit(e);
     }
   };
 
@@ -95,6 +79,7 @@ export default function CreateProjectPage() {
         onProjectClick={(projectId) => {
           setSelectedProjectId(projectId);
         }}
+        onAddNewProject={() => setShowModal(true)}
       />
 
       {/* Main Content */}
@@ -107,93 +92,13 @@ export default function CreateProjectPage() {
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Glassmorphism Modal */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
-              onClick={() => {}}
-            />
-
-            {/* Modal */}
-            <div className="relative w-full max-w-md fade-in zoom-in">
-              <div
-                className={cn(
-                  "relative rounded-2xl border border-white/10",
-                  "bg-gradient-to-br from-black/80 via-black/60 to-black/80",
-                  "backdrop-blur-xl shadow-2xl",
-                  "p-8 space-y-6"
-                )}
-                style={{
-                  boxShadow:
-                    "0 8px 32px 0 rgba(139, 92, 246, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
-                }}
-              >
-                {/* Header */}
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                    <Sparkles className="h-8 w-8 text-primary" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Create New Project
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Give your project a name to get started
-                  </p>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Input
-                      ref={inputRef}
-                      type="text"
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Enter project name..."
-                      disabled={isLoading}
-                      className={cn(
-                        "w-full h-12 text-base",
-                        "bg-white/5 border-white/10",
-                        "focus-visible:border-primary/50 focus-visible:ring-primary/20",
-                        "backdrop-blur-sm",
-                        "placeholder:text-muted-foreground/50"
-                      )}
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowModal(false)}
-                      disabled={isLoading}
-                      className="flex-1 border-white/10 bg-white/5 hover:bg-white/10"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={!projectName.trim() || isLoading}
-                      className="flex-1 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-primary/50"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        "Create"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Create Project Modal */}
+        <CreateProjectModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleCreateProject}
+          isLoading={isLoading}
+        />
 
         {/* Main Chat Area - Hidden when modal is shown */}
         {!showModal && (
@@ -260,13 +165,26 @@ export default function CreateProjectPage() {
             {showInputBar && !selectedProjectId && (
               <div className="fixed bottom-0 left-0 right-0 lg:left-64 border-t border-border bg-background/95 backdrop-blur-sm z-30">
                 <div className="mx-auto max-w-3xl px-4 py-4">
-                  <form onSubmit={handleSubmit} className="relative">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (projectName.trim() && !isLoading) {
+                        handleCreateProject(projectName.trim());
+                      }
+                    }}
+                    className="relative"
+                  >
                     <div className="relative">
                       <Input
                         type="text"
                         value={projectName}
                         onChange={(e) => setProjectName(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !isLoading) {
+                            e.preventDefault();
+                            handleCreateProject(projectName.trim());
+                          }
+                        }}
                         placeholder="Name your analysis..."
                         disabled={isLoading}
                         className={cn(

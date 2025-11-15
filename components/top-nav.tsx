@@ -42,7 +42,7 @@ export function TopNav({ projectId }: TopNavProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/create-project')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>

@@ -20,12 +20,14 @@ interface ProjectSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   onProjectClick?: (projectId: string) => void;
+  onAddNewProject?: () => void;
 }
 
 export function ProjectSidebar({
   isOpen,
   onToggle,
   onProjectClick,
+  onAddNewProject,
 }: ProjectSidebarProps) {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -146,7 +148,13 @@ export function ProjectSidebar({
           {/* Add New Project Section */}
           <div className="border-b border-t border-border p-4">
             <Button
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                if (onAddNewProject) {
+                  onAddNewProject();
+                } else {
+                  setShowModal(true);
+                }
+              }}
               className="w-full gap-2"
               variant="default"
             >

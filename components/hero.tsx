@@ -36,7 +36,7 @@ export function Hero() {
         className="shimmer-button group gap-2 relative"
       >
         <Plus className="h-5 w-5 relative z-10" />
-        <span className="relative z-10">Create New Analysis</span>
+        <span className="relative z-10">View Dashboard</span>
       </Button>
 
       <p className="mt-4 text-sm text-muted-foreground">
