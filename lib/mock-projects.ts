@@ -7,6 +7,7 @@ export const mockProjectsStore: Record<
     nodeCount: number;
     updatedAt: string;
     response: string;
+    userPrompt: string;
   }
 > = {
   "1": {
@@ -14,6 +15,7 @@ export const mockProjectsStore: Record<
     name: "Customer Query Analysis",
     nodeCount: 24,
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    userPrompt: "",
     response: `### Customer Query Analysis 💬
 
 This project utilizes a sophisticated large language model (LLM) pipeline to **comprehensively analyze and categorize incoming customer service queries** that originate from a multitude of channels, including direct email, real-time chat logs, and public social media platforms. The central objective of this system is to transform unstructured, raw textual data into actionable, categorized information.
@@ -43,6 +45,7 @@ The project's classified and enriched output currently serves as the indispensab
     name: "Medical Diagnosis Review",
     nodeCount: 18,
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    userPrompt: "",
     response: `### Medical Diagnosis Review 🩺
 
 This project is a critical application built on a machine learning framework designed for **pre-screening and review of complex medical diagnostic data**. Its primary function is to enhance the accuracy and efficiency of healthcare providers by offering a secondary, data-driven perspective on patient cases. The system ingests vast amounts of structured and unstructured data, including electronic health records (EHRs), lab results, radiological reports (processed via integrated computer vision models), and transcribed doctor's notes.
@@ -66,6 +69,7 @@ The **18 nodes** are consistently processing an average of **200 patient records
     name: "Code Analysis Trace",
     nodeCount: 42,
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    userPrompt: "",
     response: `### Code Analysis Trace 💻
 
 This project is a high-performance, dynamic analysis system designed for **tracing execution paths and identifying complex vulnerabilities** within large, proprietary codebases. Its core function is to systematically review application source code and its compiled binaries to understand its runtime behavior, going far beyond the capabilities of static analysis tools.
@@ -77,5 +81,93 @@ Furthermore, the **Code Analysis Trace** system is equipped with an advanced **f
 **Sample Text Content:**
 
 "The Code Analysis Trace system, known internally as 'Project Cerberus', represents our cutting-edge defense against zero-day exploits and deeply embedded logical flaws. With **42 high-utilization nodes** dedicated to parallel execution tracing, the system is engineered to handle massive, complex enterprise applications, performing a full trace on a 10-million-line codebase in under four hours.`
+  },
+  "1763229663189": {
+    id: "1763229663189",
+    name: "curry",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T18:01:03.189Z",
+    userPrompt: "",
+    response: ``,
+  },
+  "1763233255960": {
+    id: "1763233255960",
+    name: "testing",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T19:00:55.960Z",
+    userPrompt: "",
+    response: ``,
+  },
+  "1763234322077": {
+    id: "1763234322077",
+    name: "test2",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T19:18:42.077Z",
+    userPrompt: "",
+    response: ``,
+  },
+  "1763234440049": {
+    id: "1763234440049",
+    name: "test3",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T19:20:40.049Z",
+    userPrompt: "this is my prompt",
+    response: ``,
+  },
+  "1763242837371": {
+    id: "1763242837371",
+    name: "test4",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T21:40:37.371Z",
+    userPrompt: "new prompt",
+    response: ``,
+  },
+  "1763243448903": {
+    id: "1763243448903",
+    name: "test5",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T21:50:48.903Z",
+    userPrompt: "",
+    response: ``,
+  },
+  "1763243551951": {
+    id: "1763243551951",
+    name: "test 6",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T21:52:31.951Z",
+    userPrompt: "",
+    response: ``,
+  },
+  "1763243663927": {
+    id: "1763243663927",
+    name: "test 7",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T21:54:23.927Z",
+    userPrompt: "this is a new test",
+    response: ``,
+  },
+  "1763244919112": {
+    id: "1763244919112",
+    name: "test 8",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T22:15:19.112Z",
+    userPrompt: "asdasdad",
+    response: ``,
+  },
+  "1763244940553": {
+    id: "1763244940553",
+    name: "test",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T22:15:40.553Z",
+    userPrompt: "sdf",
+    response: ``,
+  },
+  "1763246288664": {
+    id: "1763246288664",
+    name: "dfds",
+    nodeCount: 0,
+    updatedAt: "2025-11-15T22:38:08.664Z",
+    userPrompt: "sdfsdf",
+    response: ``,
   },
 }

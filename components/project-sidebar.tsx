@@ -164,7 +164,7 @@ export function ProjectSidebar({
           </div>
 
           {/* Projects List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {loading ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Loading...

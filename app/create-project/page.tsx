@@ -8,7 +8,7 @@ import { ProjectSidebar } from "@/components/project-sidebar";
 import { CreateProjectModal } from "@/components/create-project-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Loader2, Send } from "lucide-react";
+import { Menu, Loader2, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function CreateProjectPage() {
@@ -23,6 +23,10 @@ export default function CreateProjectPage() {
   const [selectedProjectResponse, setSelectedProjectResponse] =
     useState<string>("");
   const [showInputBar, setShowInputBar] = useState(false);
+  const [userPrompt, setUserPrompt] = useState("");
+  const [promptInput, setPromptInput] = useState("");
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Fetch project response when a project is selected
   useEffect(() => {
@@ -59,6 +63,9 @@ export default function CreateProjectPage() {
         setShowInputBar(true);
         setShowModal(false);
         setProjectName(name);
+        setCurrentProjectId(project.id);
+        setSelectedProjectId(null); // Clear selected project to show input area
+        setIsLoading(false);
         // Don't navigate, stay on this page
       } else {
         console.error("Failed to create project");
@@ -67,6 +74,48 @@ export default function CreateProjectPage() {
     } catch (error) {
       console.error("Failed to create project:", error);
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmitPrompt = async (prompt: string) => {
+    if (!prompt.trim() || isLoading || !currentProjectId) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/projects/${currentProjectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userPrompt: prompt.trim() }),
+      });
+
+      if (response.ok) {
+        setUserPrompt(prompt.trim());
+        setPromptInput(""); // Clear input after storing
+        setShowSuccessModal(true);
+        // Auto-close after 3 seconds and display the project
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          if (currentProjectId) {
+            setSelectedProjectId(currentProjectId);
+          }
+        }, 3000);
+      } else {
+        console.error("Failed to update project prompt");
+      }
+    } catch (error) {
+      console.error("Failed to update project prompt:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Automatically display the project when modal closes
+    if (currentProjectId) {
+      setSelectedProjectId(currentProjectId);
     }
   };
 
@@ -98,6 +147,21 @@ export default function CreateProjectPage() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreateProject}
           isLoading={isLoading}
+        />
+
+        {/* Success Modal */}
+        <CreateProjectModal
+          open={showSuccessModal}
+          onClose={handleCloseSuccessModal}
+          onSubmit={handleCloseSuccessModal}
+          title="Prompt Submitted"
+          description="Your prompt has been successfully submitted and is being processed."
+          submitLabel="Got it"
+          cancelLabel=""
+          icon={<Check className="h-8 w-8 text-primary" />}
+          isLoading={false}
+          initialValue=""
+          showInput={false}
         />
 
         {/* Main Chat Area - Hidden when modal is shown */}
@@ -148,13 +212,23 @@ export default function CreateProjectPage() {
                 <div className="w-full max-w-3xl mx-auto text-center">
                   <div className="mb-8">
                     <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-                      Storage{" "}
-                      <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        Bank
-                      </span>
+                      {projectName ? (
+                        <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                          {projectName}
+                        </span>
+                      ) : (
+                        <>
+                          Storage{" "}
+                          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            Bank
+                          </span>
+                        </>
+                      )}
                     </h1>
                     <p className="text-muted-foreground text-lg sm:text-xl">
-                      Select a completed project and view its final output.
+                      {projectName
+                        ? "Enter your project prompt."
+                        : "Select a completed project and view its final output."}
                     </p>
                   </div>
                 </div>
@@ -166,26 +240,28 @@ export default function CreateProjectPage() {
               <div className="fixed bottom-0 left-0 right-0 lg:left-64 border-t border-border bg-background/95 backdrop-blur-sm z-30">
                 <div className="mx-auto max-w-3xl px-4 py-4">
                   <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
-                      if (projectName.trim() && !isLoading) {
-                        handleCreateProject(projectName.trim());
-                      }
+                      await handleSubmitPrompt(promptInput);
                     }}
                     className="relative"
                   >
                     <div className="relative">
                       <Input
                         type="text"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !isLoading) {
+                        value={promptInput}
+                        onChange={(e) => setPromptInput(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (
+                            e.key === "Enter" &&
+                            !isLoading &&
+                            currentProjectId
+                          ) {
                             e.preventDefault();
-                            handleCreateProject(projectName.trim());
+                            await handleSubmitPrompt(promptInput);
                           }
                         }}
-                        placeholder="Name your analysis..."
+                        placeholder="Enter your project prompt..."
                         disabled={isLoading}
                         className={cn(
                           "w-full h-12 text-base pr-12",
@@ -197,7 +273,7 @@ export default function CreateProjectPage() {
                       />
                       <Button
                         type="submit"
-                        disabled={!projectName.trim() || isLoading}
+                        disabled={!promptInput.trim() || isLoading}
                         size="icon"
                         className={cn(
                           "absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9",
