@@ -1,0 +1,118 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "query": "Where can I get the best cheese burger",
+      "pipeline_agent": "pipeline_architect_v1",
+      "rationale": "To find the best cheeseburger, we need to search for reviews and evidence, analyze the results, validate claims, and produce a well-reasoned recommendation.",
+      "nodes": [
+        {
+          "id": "valyu_search",
+          "label": "Valyu Search",
+          "kind": "tool",
+          "description": "Searches for cheeseburger reviews, ratings, and expert recommendations across proprietary and web sources",
+          "inputs": [
+            "query"
+          ],
+          "outputs": [
+            "search_packet"
+          ]
+        },
+        {
+          "id": "research_agent",
+          "label": "Research Agent",
+          "kind": "agent",
+          "description": "Organizes and synthesizes cheeseburger review data into structured findings",
+          "inputs": [
+            "query",
+            "search_packet"
+          ],
+          "outputs": [
+            "research_summary"
+          ]
+        },
+        {
+          "id": "logic_agent",
+          "label": "Logic Agent",
+          "kind": "agent",
+          "description": "Analyzes findings to determine best cheeseburger options based on quality, value, and accessibility",
+          "inputs": [
+            "query",
+            "research_summary"
+          ],
+          "outputs": [
+            "final_answer"
+          ]
+        },
+        {
+          "id": "validation_agent",
+          "label": "Validation Agent",
+          "kind": "agent",
+          "description": "Verifies restaurant claims and reviews for accuracy and recency",
+          "inputs": [
+            "query",
+            "final_answer",
+            "research_summary"
+          ],
+          "outputs": [
+            "validation_report"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "source": "valyu_search",
+          "target": "research_agent",
+          "label": "search_packet",
+          "metadata": {}
+        },
+        {
+          "source": "research_agent",
+          "target": "logic_agent",
+          "label": "research_summary",
+          "metadata": {}
+        },
+        {
+          "source": "logic_agent",
+          "target": "validation_agent",
+          "label": "final_answer",
+          "metadata": {}
+        }
+      ],
+      "recommended_sequence": [
+        "valyu_search",
+        "research_agent",
+        "logic_agent",
+        "validation_agent"
+      ],
+      "tools_used": [
+        "valyu_search",
+        "research_agent",
+        "logic_agent",
+        "validation_agent"
+      ],
+      "version": "1.0"
+    }
+  ],
+  "usage": {
+    "input_tokens": 1817,
+    "output_tokens": 642,
+    "total_tokens": 2459
+  },
+  "metadata": {
+    "team_id": "team_the_great_hack_2025_015",
+    "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "cost_usd": 0.015081,
+    "latency_ms": 9961.88,
+    "remaining_quota": {
+      "requests_today": 48,
+      "tokens_today": 503442,
+      "llm_cost": 1.73871,
+      "gpu_cost": 0.0,
+      "total_cost": 1.73871,
+      "budget_limit": 50.0,
+      "remaining_budget": 48.26129,
+      "budget_usage_percent": 3.47742
+    }
+  }
+}

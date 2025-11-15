@@ -12,4 +12,6 @@ def upload_trace():
 @traces_bp.route("/<trace_id>", methods=["GET"])
 def fetch_trace(trace_id):
     trace = get_trace(trace_id)
+    if not trace:
+        return jsonify({"error": "Trace not found"}), 404
     return jsonify(trace)
