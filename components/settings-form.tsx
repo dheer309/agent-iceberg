@@ -1,41 +1,48 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
-import { Switch } from '@/components/ui/switch'
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export function SettingsForm() {
-  const [nodeSize, setNodeSize] = useState([100])
-  const [edgeThickness, setEdgeThickness] = useState([2])
-  const [colorblindMode, setColorblindMode] = useState(false)
-  const [layout, setLayout] = useState('force-directed')
+  const [nodeSize, setNodeSize] = useState([100]);
+  const [edgeThickness, setEdgeThickness] = useState([2]);
+  const [colorblindMode, setColorblindMode] = useState(false);
+  const [layout, setLayout] = useState("force-directed");
 
   const handleSave = async () => {
     try {
-      await fetch('/api/user/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/user/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nodeSize: nodeSize[0],
           edgeThickness: edgeThickness[0],
           colorblindMode,
           layout,
         }),
-      })
+      });
     } catch (error) {
-      console.error('[v0] Failed to save settings:', error)
+      console.error("[v0] Failed to save settings:", error);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -61,7 +68,9 @@ export function SettingsForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edge-thickness">Edge Thickness: {edgeThickness[0]}px</Label>
+            <Label htmlFor="edge-thickness">
+              Edge Thickness: {edgeThickness[0]}px
+            </Label>
             <Slider
               id="edge-thickness"
               min={1}
@@ -116,9 +125,7 @@ export function SettingsForm() {
       <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>
-          <CardDescription>
-            Visual appearance preferences
-          </CardDescription>
+          <CardDescription>Visual appearance preferences</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
@@ -136,10 +143,13 @@ export function SettingsForm() {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} className="gap-2 bg-primary hover:bg-primary/90">
+        <Button
+          onClick={handleSave}
+          className="gap-2 bg-primary hover:bg-primary/90"
+        >
           Save Settings
         </Button>
       </div>
     </div>
-  )
+  );
 }

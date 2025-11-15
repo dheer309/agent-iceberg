@@ -15,7 +15,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background pt-16">
       <TopNav projectId={projectId} />
       
       <div className="flex flex-1 overflow-hidden">

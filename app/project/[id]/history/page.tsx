@@ -12,7 +12,7 @@ export default async function HistoryPage({
   
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-border bg-card pt-20">
         <div className="mx-auto max-w-5xl px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
