@@ -1,0 +1,10 @@
+
+
+{"query\": \"Find difference between AWS servers and self-hosted servers\",
+\n  \"pipeline_agent\": 
+\"pipeline_architect_v1\",\n  
+\"rationale\": \"Using research agent to gather and synthesize information about server types,
+             followed by validation agent to ensure accuracy of comparison\",\n  
+             \"nodes\": 
+             [\n    {\n      \"id\": \"valyu_search\",\n      \"label\": \"Valyu Search\",\n      \"kind\": \"tool\",\n      \"description\": \"Retrieves information about AWS and self-hosted server comparisons\",\n      \"inputs\": [\"query\"],\n      \"outputs\": [\"search_packet\"],\n      \"metadata\": {\n        \"search_type\": \"technical\"\n      }\n    },\n    {\n      \"id\": \"research_agent\",\n      \"label\": \"Research Agent\",\n      \"kind\": \"agent\", \n      \"description\": \"Analyzes and synthesizes server comparison data\",\n      \"inputs\": [\"query\", \"search_packet\"],\n      \"outputs\": [\"research_summary\"],\n      \"metadata\": {\n        \"focus\": \"infrastructure_comparison\"\n      }\n    },\n    {\n      \"id\": \"validation_agent\",\n      \"label\": \"Validation Agent\",\n      \"kind\": \"agent\",\n      \"description\": \"Verifies technical claims and cost comparisons\",\n      \"inputs\": [\"query\", \"research_summary\"],\n      \"outputs\": [\"validation_report\"],\n      \"metadata\": {\n        \"validation_focus\": \"technical_accuracy\"\n      }\n    }\n  ],\n  \"edges\": [\n    {\n      \"source\": \"valyu_search\",\n      \"target\": \"research_agent\",\n      \"label\": \"search_packet\",\n      \"metadata\": {}\n    },\n    {\n      \"source\": \"research_agent\",\n      \"target\": \"validation_agent\",\n      \"label\": \"research_summary\",\n      \"metadata\": {}\n    }\n  ],\n  \"recommended_sequence\": [\n    \"valyu_search\",\n    \"research_agent\",\n    \"validation_agent\"\n  ],\n  \"tools_used\": [\n    \"valyu_search\",\n    \"research_agent\",\n    \"validation_agent\"\n  ],\n  \"version\": \"1.0\"\n}"
+        }
