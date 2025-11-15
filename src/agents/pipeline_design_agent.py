@@ -110,17 +110,26 @@ class PipelineDesignAgent(PipelineAgent):
                 inputs=["user_query", "analysis_payload", "research_summary"],
                 outputs=["validation_report"],
             ),
+            PipelineNode(
+                id="redteam_agent",
+                label="Red Team Agent",
+                kind="agent",
+                description="Audits every node for jailbreak vulnerabilities and proposes mitigations.",
+                inputs=["user_query", "pipeline_graph", "agent_outputs"],
+                outputs=["redteam_report"],
+            ),
         ]
         edges = [
             PipelineEdge(source="pipeline_entry", target="valyu_search", label="dispatch"),
             PipelineEdge(source="valyu_search", target="research_agent", label="evidence"),
             PipelineEdge(source="research_agent", target="logic_agent", label="structured_brief"),
             PipelineEdge(source="logic_agent", target="validation_agent", label="final_answer"),
+            PipelineEdge(source="validation_agent", target="redteam_agent", label="audit"),
         ]
         return PipelineGraph(
             query=query,
             pipeline_agent=self.name,
-            rationale="Default security-hardening pipeline with search, research, reasoning, and validation stages.",
+            rationale="Default security-hardening pipeline with search, research, reasoning, validation, and red-team audit stages.",
             nodes=nodes,
             edges=edges,
             recommended_sequence=[
@@ -129,6 +138,7 @@ class PipelineDesignAgent(PipelineAgent):
                 "research_agent",
                 "logic_agent",
                 "validation_agent",
+                "redteam_agent",
             ],
             tools_used=["component_catalog"],
         )

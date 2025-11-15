@@ -33,7 +33,7 @@ class ValidationAgent(PipelineAgent):
                         """
                         You are a critical reviewer verifying AI generated answers.
                         Identify factual issues, missing context, and policy risks.
-                        Respond as JSON with fields `verdict` (pass|fail), `issues`, and `next_action`.
+                        Respond as JSON with fields `verdict` (pass|fail), `issues`, `next_action` and `current_response` (which is the best response to human query for now).
                         Use the validation search packet for cross reference.
                         """
                     ).strip(),

@@ -12,6 +12,7 @@ from langchain_core.runnables import RunnableSequence
 
 from .agents.logic_agent import LogicAgent
 from .agents.pipeline_design_agent import PipelineDesignAgent
+from .agents.redteam_agent import RedteamAgent
 from .agents.research_agent import ResearchAgent
 from .agents.validation_agent import ValidationAgent
 from .config import Settings, configure_langsmith, get_settings
@@ -23,6 +24,7 @@ EXECUTION_ORDER = [
     "research_agent",
     "logic_agent",
     "validation_agent",
+    "redteam_agent",
 ]
 
 
@@ -35,6 +37,7 @@ class PipelineArtifacts:
     research_agent: ResearchAgent
     logic_agent: LogicAgent
     validation_agent: ValidationAgent
+    redteam_agent: RedteamAgent
 
 
 @dataclass
@@ -52,6 +55,11 @@ class PipelineState:
     logic_json: Optional[Dict[str, Any]] = None
     validation_content: Optional[str] = None
     validation_json: Optional[Dict[str, Any]] = None
+    redteam_content: Optional[str] = None
+    redteam_json: Optional[Dict[str, Any]] = None
+    redteam_enabled: bool = False
+    redteam_loops: int = 10
+    redteam_history: list[Dict[str, Any]] = field(default_factory=list)
     overrides: Dict[str, Any] = field(default_factory=dict)
     disabled_nodes: list[str] = field(default_factory=list)
 
@@ -81,6 +89,11 @@ class PipelineState:
             "logic_json": self.logic_json,
             "validation_content": self.validation_content,
             "validation_json": self.validation_json,
+            "redteam_content": self.redteam_content,
+            "redteam_json": self.redteam_json,
+            "redteam_enabled": self.redteam_enabled,
+            "redteam_loops": self.redteam_loops,
+            "redteam_history": self.redteam_history,
             "overrides": self.overrides,
             "disabled_nodes": self.disabled_nodes,
         }
@@ -101,6 +114,11 @@ class PipelineState:
             logic_json=data.get("logic_json"),
             validation_content=data.get("validation_content"),
             validation_json=data.get("validation_json"),
+            redteam_content=data.get("redteam_content"),
+            redteam_json=data.get("redteam_json"),
+            redteam_enabled=data.get("redteam_enabled", False),
+            redteam_loops=data.get("redteam_loops", 10),
+            redteam_history=data.get("redteam_history", []),
             overrides=data.get("overrides", {}),
             disabled_nodes=data.get("disabled_nodes", []),
         )
@@ -118,6 +136,8 @@ class PipelineState:
             "agents": self.agent_outputs,
             "final_answer": final_answer,
             "validation": self.validation_content,
+            "redteam": self.redteam_content,
+            "redteam_history": self.redteam_history,
         }
 
 
@@ -126,19 +146,50 @@ class MultiAgentPipeline:
         self._artifacts = artifacts
 
     @traceable(run_type="chain", name="MultiAgentPipeline.run")
-    def run(self, query: str) -> Dict[str, Any]:
-        state = self.initialize_state(query)
+    def run(
+        self,
+        query: str,
+        *,
+        enable_redteam: bool = False,
+        redteam_loops: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        state = self.initialize_state(
+            query,
+            enable_redteam=enable_redteam,
+            redteam_loops=redteam_loops,
+        )
         state = self.run_until_complete(state)
         return state.build_payload()
 
-    def run_as_json(self, query: str, indent: Optional[int] = None) -> str:
-        payload = self.run(query)
+    def run_as_json(
+        self,
+        query: str,
+        indent: Optional[int] = None,
+        *,
+        enable_redteam: bool = False,
+        redteam_loops: Optional[int] = None,
+    ) -> str:
+        payload = self.run(
+            query,
+            enable_redteam=enable_redteam,
+            redteam_loops=redteam_loops,
+        )
         indent = indent if indent is not None else self._artifacts.settings.json_indent
         return json.dumps(payload, indent=indent)
 
     @traceable(run_type="chain", name="MultiAgentPipeline.stream")
-    def stream(self, query: str) -> Iterable[Dict[str, Any]]:
-        state = self.initialize_state(query)
+    def stream(
+        self,
+        query: str,
+        *,
+        enable_redteam: bool = False,
+        redteam_loops: Optional[int] = None,
+    ) -> Iterable[Dict[str, Any]]:
+        state = self.initialize_state(
+            query,
+            enable_redteam=enable_redteam,
+            redteam_loops=redteam_loops,
+        )
         yield {"pipeline_designer": state.agent_outputs["pipeline_designer"]}
         while not state.is_complete():
             stage = state.pending_stage()
@@ -150,18 +201,33 @@ class MultiAgentPipeline:
                 yield {stage: payload}
         yield {"final_payload": state.build_payload()}
 
-    def initialize_state(self, query: str) -> PipelineState:
+    def initialize_state(
+        self,
+        query: str,
+        *,
+        enable_redteam: bool = False,
+        redteam_loops: Optional[int] = None,
+    ) -> PipelineState:
         timestamp = datetime.utcnow().isoformat() + "Z"
         plan = self._artifacts.pipeline_designer.run(query)
         graph_data = plan.metadata.get("graph", {})
         sequence = self._normalized_sequence(graph_data.get("recommended_sequence"))
+        if not enable_redteam and "redteam_agent" in sequence:
+            sequence = [node for node in sequence if node != "redteam_agent"]
+        if enable_redteam and "redteam_agent" not in sequence:
+            sequence.append("redteam_agent")
+        loops = redteam_loops or self._artifacts.settings.redteam_default_loops
         state = PipelineState(
             query=query,
             created_at=timestamp,
             pipeline_graph=graph_data,
             sequence=sequence,
             agent_outputs={"pipeline_designer": plan.to_json()},
+            redteam_enabled=enable_redteam,
+            redteam_loops=loops,
         )
+        if not enable_redteam:
+            self._remove_node_from_graph(state, "redteam_agent")
         self._sync_graph_sequence(state)
         return state
 
@@ -212,6 +278,8 @@ class MultiAgentPipeline:
                 state.next_stage_index = index
         if node_id not in state.disabled_nodes:
             state.disabled_nodes.append(node_id)
+        if node_id == "redteam_agent":
+            state.redteam_enabled = False
         self._remove_node_from_graph(state, node_id)
         self._sync_graph_sequence(state)
         return state
@@ -226,6 +294,8 @@ class MultiAgentPipeline:
             self._execute_logic(state, override)
         elif node_id == "validation_agent":
             self._execute_validation(state, override)
+        elif node_id == "redteam_agent":
+            self._execute_redteam(state, override)
 
     def _execute_valyu_search(self, state: PipelineState, override: Any = None) -> None:
         packet = override if override is not None else self._artifacts.search_tool.run(state.query)
@@ -233,6 +303,8 @@ class MultiAgentPipeline:
         state.agent_outputs["valyu_search"] = packet
 
     def _execute_research(self, state: PipelineState, override: Any = None) -> None:
+        if state.search_packet is None and override is None:
+            self._execute_valyu_search(state)
         if override is not None:
             payload, content = self._normalize_override("ResearchAgent", override)
         else:
@@ -247,6 +319,8 @@ class MultiAgentPipeline:
         state.agent_outputs["research_agent"] = payload
 
     def _execute_logic(self, state: PipelineState, override: Any = None) -> None:
+        if state.research_content is None and override is None:
+            self._execute_research(state)
         if override is not None:
             payload, content = self._normalize_override("LogicAgent", override)
         else:
@@ -261,6 +335,10 @@ class MultiAgentPipeline:
         state.agent_outputs["logic_agent"] = payload
 
     def _execute_validation(self, state: PipelineState, override: Any = None) -> None:
+        if state.logic_content is None and override is None:
+            self._execute_logic(state)
+        if state.research_content is None and override is None:
+            self._execute_research(state)
         if override is not None:
             payload, content = self._normalize_override("ValidationAgent", override)
         else:
@@ -274,6 +352,74 @@ class MultiAgentPipeline:
         state.validation_content = content
         state.validation_json = payload
         state.agent_outputs["validation_agent"] = payload
+
+    def _execute_redteam(self, state: PipelineState, override: Any = None) -> None:
+        if not state.redteam_enabled and override is None:
+            return
+        if override is not None:
+            payload, content = self._normalize_override("RedteamAgent", override)
+            state.redteam_content = content
+            state.redteam_json = payload
+            state.agent_outputs["redteam_agent"] = payload
+            return
+
+        history: list[Dict[str, Any]] = []
+        loops = max(1, state.redteam_loops or self._artifacts.settings.redteam_default_loops)
+        try:
+            for iteration in range(1, loops + 1):
+                attack_prompt = self._artifacts.redteam_agent.propose_attack(
+                    query=state.query,
+                    pipeline_graph=state.pipeline_graph,
+                    agent_outputs=state.agent_outputs,
+                    iteration=iteration,
+                    total_iterations=loops,
+                    history=history,
+                )
+                probe_results = self._probe_agents(attack_prompt)
+                iteration_review = self._artifacts.redteam_agent.review_iteration(
+                    query=state.query,
+                    pipeline_graph=state.pipeline_graph,
+                    agent_outputs=state.agent_outputs,
+                    attack_prompt=attack_prompt,
+                    probe_results=probe_results,
+                    iteration=iteration,
+                    total_iterations=loops,
+                    history=history,
+                )
+                history.append(
+                    {
+                        "iteration": iteration,
+                        "attack_prompt": attack_prompt,
+                        "probe_results": probe_results,
+                        "analysis": iteration_review,
+                    }
+                )
+
+            summary = self._artifacts.redteam_agent.summarize(
+                query=state.query,
+                pipeline_graph=state.pipeline_graph,
+                history=history,
+            )
+            payload = {
+                "history": history,
+                "summary": summary,
+                "loops": loops,
+            }
+        except RuntimeError as exc:
+            payload = {
+                "error": str(exc),
+                "loops": loops,
+                "history": history,
+            }
+            state.redteam_content = str(exc)
+            state.redteam_json = payload
+            state.agent_outputs["redteam_agent"] = payload
+            return
+        state.redteam_history = history
+        state.redteam_content = json.dumps(summary, indent=2) if isinstance(summary, dict) else str(summary)
+        state.redteam_json = payload
+        state.agent_outputs["redteam_agent"] = payload
+        state.redteam_enabled = True
 
     @staticmethod
     def _normalize_override(node_name: str, override: Any) -> tuple[Dict[str, Any], str]:
@@ -309,6 +455,10 @@ class MultiAgentPipeline:
         elif node_id == "validation_agent":
             state.validation_content = None
             state.validation_json = None
+        elif node_id == "redteam_agent":
+            state.redteam_content = None
+            state.redteam_json = None
+            state.redteam_history = []
 
     def _remove_node_from_graph(self, state: PipelineState, node_id: str) -> None:
         graph = state.pipeline_graph
@@ -323,6 +473,55 @@ class MultiAgentPipeline:
 
     def _sync_graph_sequence(self, state: PipelineState) -> None:
         state.pipeline_graph["recommended_sequence"] = state.sequence[:]
+
+    def _probe_agents(self, attack_prompt: str) -> Dict[str, Any]:
+        results: Dict[str, Any] = {}
+
+        def record(name: str, success: bool, output: Any = None, error: str | None = None) -> None:
+            results[name] = {"success": success, "output": output, "error": error}
+
+        search_packet: Optional[Dict[str, Any]] = None
+        try:
+            search_packet = self._artifacts.search_tool.run(attack_prompt)
+            record("valyu_search", True, search_packet)
+        except Exception as exc:  # pragma: no cover - network failure
+            record("valyu_search", False, error=str(exc))
+
+        research_summary = ""
+        try:
+            if search_packet is None:
+                search_packet = self._artifacts.search_tool.run(attack_prompt)
+            research = self._artifacts.research_agent.run(
+                query=attack_prompt,
+                search_data=search_packet,
+            )
+            research_summary = research.content
+            record("research_agent", True, research.to_json())
+        except Exception as exc:
+            record("research_agent", False, error=str(exc))
+
+        logic_payload = ""
+        try:
+            logic = self._artifacts.logic_agent.run(
+                query=attack_prompt,
+                research_summary=research_summary or attack_prompt,
+            )
+            logic_payload = logic.content
+            record("logic_agent", True, logic.to_json())
+        except Exception as exc:
+            record("logic_agent", False, error=str(exc))
+
+        try:
+            validation = self._artifacts.validation_agent.run(
+                query=attack_prompt,
+                proposed_answer=logic_payload or attack_prompt,
+                research_summary=research_summary or attack_prompt,
+            )
+            record("validation_agent", True, validation.to_json())
+        except Exception as exc:
+            record("validation_agent", False, error=str(exc))
+
+        return results
 
     @staticmethod
     def _normalized_sequence(sequence: Optional[Any]) -> list[str]:
@@ -343,6 +542,7 @@ def build_pipeline(settings: Optional[Settings] = None) -> MultiAgentPipeline:
     research_agent = ResearchAgent(llm=llm, search_tool=search_tool, settings=settings)
     logic_agent = LogicAgent(llm=llm, settings=settings)
     validation_agent = ValidationAgent(llm=llm, search_tool=search_tool, settings=settings)
+    redteam_agent = RedteamAgent(settings=settings)
     artifacts = PipelineArtifacts(
         settings=settings,
         llm=llm,
@@ -351,6 +551,7 @@ def build_pipeline(settings: Optional[Settings] = None) -> MultiAgentPipeline:
         research_agent=research_agent,
         logic_agent=logic_agent,
         validation_agent=validation_agent,
+        redteam_agent=redteam_agent,
     )
     return MultiAgentPipeline(artifacts)
 

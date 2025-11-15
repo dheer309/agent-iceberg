@@ -17,6 +17,7 @@ All LLM calls go through Holistic AI's managed endpoint (set to the model you pr
 - Python 3.11+
 - Holistic AI team ID, API token, and invoke endpoint URL
 - Valyu API key for proprietary + web search (`https://valyu.ai`)
+- (Optional) Local [Ollama](https://ollama.com/) runtime hosting `huihui_ai/deepseek-r1-abliterated:8b` for the red-team auditor
 - (Optional) LangSmith account for tracing
 
 Export the required environment variables before running the pipeline:
@@ -33,6 +34,11 @@ export VALYU_API_KEY=vyu-...
 export VALYU_SEARCH_TYPE=all
 export VALYU_MAX_RESULTS=6
 export VALYU_RELEVANCE_THRESHOLD=0.45
+
+# Red Team / Ollama (optional)
+export OLLAMA_ENDPOINT=http://localhost:11434
+export REDTEAM_MODEL=huihui_ai/deepseek-r1-abliterated:8b
+export REDTEAM_DEFAULT_LOOPS=10
 
 # LangSmith (optional)
 export LANGSMITH_API_KEY=ls__...
@@ -55,9 +61,11 @@ pip install -r requirements.txt
 
 ```bash
 python -m src.main "How will quantum networking impact financial data privacy?"
+# Optional: enable the red-team audit stage with five jailbreak loops
+python -m src.main "How secure is my agent network?" --enable-redteam --redteam-loops 5
 ```
 
-The command prints a JSON payload containing a `pipeline_graph` (for UI rendering), the web search traces, each downstream agent's reasoning, and the final validated answer. Use `--indent 4` to control formatting.
+Each run prints a JSON payload containing the `pipeline_graph`, web search traces, every agent’s reasoning, and (when enabled) the red-team audit history. Use `--indent 4` to control formatting.
 
 ## Programmatic Control, Pause/Resume, and Node Operations
 
@@ -68,8 +76,12 @@ from src.pipeline import build_pipeline
 
 pipeline = build_pipeline()
 
-# Start a run and capture the planner output
-state = pipeline.initialize_state("How to harden a multi-agent network?")
+# Start a run (red team optional; default loops = settings.REDTEAM_DEFAULT_LOOPS)
+state = pipeline.initialize_state(
+    "How to harden a multi-agent network?",
+    enable_redteam=True,
+    redteam_loops=5,
+)
 
 # Execute two stages (e.g., Valyu search + research)
 state = pipeline.run_steps(state, steps=2)
@@ -79,7 +91,7 @@ checkpoint = state.to_dict()  # store in your DB
 
 # --- later, after the user resumes ---
 state = PipelineState.from_dict(checkpoint)
-state = pipeline.resume(state)       # finish remaining nodes
+state = pipeline.resume(state)       # finish remaining nodes (continues red team if enabled)
 result = state.build_payload()       # same JSON payload as the CLI
 ```
 
@@ -122,9 +134,9 @@ uvicorn server:app --reload
    ```bash
    curl -X POST http://localhost:8000/sessions \
         -H "Content-Type: application/json" \
-        -d '{"query": "How to harden a multiagent network?"}'
+        -d '{"query": "How to harden a multiagent network?", "enable_redteam": true, "redteam_loops": 5}'
    ```
-   Response includes a `session_id`, the planner output, the next node, and the full pipeline graph.
+   Response includes a `session_id`, the planner output, the next node, red-team status, and the full pipeline graph.
 
 2. **Step through the graph**
    ```bash
@@ -161,7 +173,7 @@ uvicorn server:app --reload
    ```
    The response matches `PipelineState.to_dict()`, making it easy to store checkpoints. To resume, deserialize the dict, call `PipelineState.from_dict`, and keep stepping via the `/step` endpoint.
 
-With these APIs, the frontend can pause simply by not calling `/step`, present editable node UIs backed by `/override` or `/regenerate`, and resume by invoking `/step` again when the user is ready.
+With these APIs, the frontend can pause simply by not calling `/step`, present editable node UIs backed by `/override` or `/regenerate`, and resume by invoking `/step` again when the user is ready. Include `"enable_redteam": true` (and optionally `"redteam_loops": N`) when creating a session to activate the local Ollama-driven audit loop.
 
 ## Architecture Overview
 
@@ -170,6 +182,7 @@ With these APIs, the frontend can pause simply by not calling `/step`, present e
 3. **Research Agent** — A Holistic AI chat model ingests compacted search payloads and extracts 3–5 key findings, citing the relevant sources. It can automatically run extra contextual queries.
 4. **Logic Agent** — The SOTA reasoning agent turns the structured research summary into JSON with `analysis`, `answer`, and `assumptions` fields, so downstream systems can consume the output easily.
 5. **Validation Agent** — A separate Holistic AI call performs critical review. It reruns a fact-check search, compares it with the proposed solution, and returns a JSON verdict (`pass`/`fail`, `issues`, `next_action`).
+6. **Red Team Agent** — Audits every node, synthesizes jailbreak prompts, and recommends mitigations to harden the system before deployment.
 
 All steps use the same Holistic AI chat model object to minimize latency. LangSmith tracing is enabled automatically when `LANGSMITH_API_KEY` is present, providing call graphs, per-agent telemetry, and dataset evaluation hooks.
 

@@ -57,6 +57,13 @@ class Settings:
     max_search_rounds: int = int(os.getenv("MAX_SEARCH_ROUNDS", "2"))
     max_logic_tokens: int = int(os.getenv("MAX_LOGIC_TOKENS", "4000"))
     json_indent: int = int(os.getenv("JSON_INDENT", "2"))
+    redteam_default_loops: int = int(os.getenv("REDTEAM_DEFAULT_LOOPS", "10"))
+    ollama_endpoint: str = os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434")
+    redteam_model: str = os.getenv(
+        "REDTEAM_MODEL",
+        "huihui_ai/deepseek-r1-abliterated:8b",
+    )
+    ollama_timeout: int = int(os.getenv("OLLAMA_TIMEOUT", "60"))
 
     @property
     def langsmith_enabled(self) -> bool:

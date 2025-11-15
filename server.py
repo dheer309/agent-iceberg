@@ -16,6 +16,10 @@ SESSIONS: Dict[str, PipelineState] = {}
 
 class StartRequest(BaseModel):
     query: str = Field(..., description="User prompt to solve")
+    enable_redteam: bool = Field(False, description="Turn on the red-team audit loop")
+    redteam_loops: Optional[int] = Field(
+        None, ge=1, le=50, description="Override the number of red-team iterations"
+    )
 
 
 class SessionResponse(BaseModel):
@@ -24,6 +28,8 @@ class SessionResponse(BaseModel):
     next_node: Optional[str]
     is_complete: bool
     pipeline_graph: Dict[str, Any]
+    redteam_enabled: bool
+    redteam_loops: int
 
 
 class StepRequest(BaseModel):
@@ -53,12 +59,18 @@ def _response(session_id: str, new_data: Dict[str, Any]) -> SessionResponse:
         next_node=state.pending_stage(),
         is_complete=state.is_complete(),
         pipeline_graph=state.pipeline_graph,
+        redteam_enabled=state.redteam_enabled,
+        redteam_loops=state.redteam_loops,
     )
 
 
 @app.post("/sessions", response_model=SessionResponse)
 def start_session(payload: StartRequest) -> SessionResponse:
-    state = pipeline.initialize_state(payload.query)
+    state = pipeline.initialize_state(
+        payload.query,
+        enable_redteam=payload.enable_redteam,
+        redteam_loops=payload.redteam_loops,
+    )
     session_id = str(uuid.uuid4())
     SESSIONS[session_id] = state
     return _response(session_id, {"pipeline_designer": state.agent_outputs["pipeline_designer"]})
