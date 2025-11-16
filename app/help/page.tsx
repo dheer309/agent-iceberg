@@ -1,12 +1,21 @@
+"use client"
+
+import { motion } from "framer-motion"
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Brain, Wrench, GitBranch, PencilLine, MousePointer, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { fadeInUp, staggerContainer, childVariants } from "@/lib/animations"
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card pt-20">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        className="border-b border-border bg-card pt-20"
+      >
         <div className="mx-auto max-w-5xl px-4 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
@@ -22,21 +31,38 @@ export default function HelpPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-12">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ delay: 0.1 }}
+          className="mb-12"
+        >
           <h2 className="mb-4 text-3xl font-bold text-center">Welcome to Observable AI</h2>
           <p className="mx-auto max-w-2xl text-center text-lg text-muted-foreground text-pretty">
             Observable AI helps you understand how AI makes decisions by visualizing
             the reasoning process as an interactive graph. No technical background needed!
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mb-12">
-          <h3 className="mb-6 text-2xl font-semibold">Understanding Nodes</h3>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="mb-12"
+        >
+          <motion.h3
+            variants={childVariants}
+            className="mb-6 text-2xl font-semibold"
+          >
+            Understanding Nodes
+          </motion.h3>
           <div className="grid gap-6 md:grid-cols-2">
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="rounded-full bg-blue-500 p-2">
@@ -53,8 +79,10 @@ export default function HelpPage() {
                 </p>
               </CardContent>
             </Card>
+            </motion.div>
 
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="rounded-full bg-green-500 p-2">
@@ -70,8 +98,10 @@ export default function HelpPage() {
                 </p>
               </CardContent>
             </Card>
+            </motion.div>
 
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="rounded-full bg-orange-500 p-2">
@@ -87,8 +117,10 @@ export default function HelpPage() {
                 </p>
               </CardContent>
             </Card>
+            </motion.div>
 
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <div className="rounded-full bg-purple-500 p-2">
@@ -104,13 +136,25 @@ export default function HelpPage() {
                 </p>
               </CardContent>
             </Card>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mb-12">
-          <h3 className="mb-6 text-2xl font-semibold">Quick Start Guide</h3>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="mb-12"
+        >
+          <motion.h3
+            variants={childVariants}
+            className="mb-6 text-2xl font-semibold"
+          >
+            Quick Start Guide
+          </motion.h3>
           <div className="space-y-4">
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardContent className="flex items-start gap-4 p-6">
                 <div className="rounded-full bg-primary p-3">
                   <MousePointer className="h-6 w-6 text-white" />
@@ -124,8 +168,10 @@ export default function HelpPage() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
 
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardContent className="flex items-start gap-4 p-6">
                 <div className="rounded-full bg-secondary p-3">
                   <PencilLine className="h-6 w-6 text-white" />
@@ -139,8 +185,10 @@ export default function HelpPage() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
 
-            <Card>
+            <motion.div variants={childVariants}>
+              <Card>
               <CardContent className="flex items-start gap-4 p-6">
                 <div className="rounded-full bg-purple-500 p-3">
                   <Zap className="h-6 w-6 text-white" />
@@ -154,21 +202,29 @@ export default function HelpPage() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-8 text-center">
-            <h3 className="mb-2 text-xl font-semibold">Need More Help?</h3>
-            <p className="mb-4 text-muted-foreground">
-              Check out our detailed documentation or contact support
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline">View Documentation</Button>
-              <Button className="bg-primary hover:bg-primary/90">Contact Support</Button>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+            <CardContent className="p-8 text-center">
+              <h3 className="mb-2 text-xl font-semibold">Need More Help?</h3>
+              <p className="mb-4 text-muted-foreground">
+                Check out our detailed documentation or contact support
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button variant="outline">View Documentation</Button>
+                <Button className="bg-primary hover:bg-primary/90">Contact Support</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   )

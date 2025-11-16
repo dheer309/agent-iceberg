@@ -37,9 +37,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mb-4 text-5xl font-bold tracking-tight text-balance sm:text-6xl lg:text-7xl"
         >
-          See How AI{" "}
+          Manufacturing AI{" "}
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Thinks
+            Thoughts
           </span>
         </motion.h1>
 
@@ -49,8 +49,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mx-auto mb-8 max-w-2xl text-xl text-muted-foreground text-pretty"
         >
-          Visualize your AI model&apos;s reasoning process. Click any step to
-          inspect, modify, or regenerate parts of the decision tree.
+          A visual AI builder that adapts to how you think, not the other way around.
         </motion.p>
 
         <motion.div
@@ -68,15 +67,6 @@ export function Hero() {
           </Button>
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-4 text-sm text-muted-foreground"
-        >
-          Built for non-technical users — business analysts, teachers, and
-          healthcare professionals
-        </motion.p>
       </motion.div>
 
       {/* Scroll indicator */}

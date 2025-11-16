@@ -50,14 +50,6 @@ export function GetStartedSection() {
               <div className="absolute inset-0 rounded-md border-2 border-primary opacity-0 blur-sm transition-opacity group-hover:opacity-50" />
             </Button>
 
-            <Button
-              size="lg"
-              variant="outline"
-              className="group gap-2 border-border text-lg transition-all hover:border-primary/50 hover:bg-primary/5"
-            >
-              <Play className="h-5 w-5" />
-              <span>Watch Demo</span>
-            </Button>
 
             <Button
               size="lg"

@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { motion } from "framer-motion";
 import { ProjectSidebar } from "@/components/project-sidebar";
 import { CreateProjectModal } from "@/components/create-project-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Menu, Loader2, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fadeInUp, fadeInLeft, containerVariants, childVariants } from "@/lib/animations";
 
 export default function CreateProjectPage() {
   const router = useRouter();
@@ -122,14 +124,20 @@ export default function CreateProjectPage() {
   return (
     <div className="flex h-screen bg-background overflow-hidden pt-16">
       {/* Sidebar */}
-      <ProjectSidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onProjectClick={(projectId) => {
-          setSelectedProjectId(projectId);
-        }}
-        onAddNewProject={() => setShowModal(true)}
-      />
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInLeft}
+      >
+        <ProjectSidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          onProjectClick={(projectId) => {
+            setSelectedProjectId(projectId);
+          }}
+          onAddNewProject={() => setShowModal(true)}
+        />
+      </motion.div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
@@ -169,9 +177,17 @@ export default function CreateProjectPage() {
           <>
             {/* Response Panel - Shown when project is selected */}
             {selectedProjectId ? (
-              <div className="flex-1 overflow-y-auto px-4 py-8 pb-32">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={containerVariants}
+                className="flex-1 overflow-y-auto px-4 py-8 pb-32"
+              >
                 <div className="mx-auto max-w-4xl">
-                  <div className="rounded-lg border border-border bg-card p-6 shadow-lg">
+                  <motion.div
+                    variants={childVariants}
+                    className="rounded-lg border border-border bg-card p-6 shadow-lg"
+                  >
                     <div className="mb-6">
                       <h2 className="text-2xl font-bold mb-2">
                         Analysis Response
@@ -204,13 +220,21 @@ export default function CreateProjectPage() {
                         </Button>
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             ) : (
-              <div className="flex-1 flex items-center justify-center px-4 pb-32">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                className="flex-1 flex items-center justify-center px-4 pb-32"
+              >
                 <div className="w-full max-w-3xl mx-auto text-center">
-                  <div className="mb-8">
+                  <motion.div
+                    variants={childVariants}
+                    className="mb-8"
+                  >
                     <h1 className="text-4xl sm:text-5xl font-bold mb-4">
                       {projectName ? (
                         <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -230,14 +254,20 @@ export default function CreateProjectPage() {
                         ? "Enter your project prompt."
                         : "Select a completed project and view its final output."}
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Input Area - Fixed at Bottom - Only show if showInputBar is true and no project is selected */}
             {showInputBar && !selectedProjectId && (
-              <div className="fixed bottom-0 left-0 right-0 lg:left-64 border-t border-border bg-background/95 backdrop-blur-sm z-30">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                transition={{ delay: 0.2 }}
+                className="fixed bottom-0 left-0 right-0 lg:left-64 border-t border-border bg-background/95 backdrop-blur-sm z-30"
+              >
                 <div className="mx-auto max-w-3xl px-4 py-4">
                   <form
                     onSubmit={async (e) => {
@@ -294,7 +324,7 @@ export default function CreateProjectPage() {
                     </p>
                   </form>
                 </div>
-              </div>
+              </motion.div>
             )}
           </>
         )}

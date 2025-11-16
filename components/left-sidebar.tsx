@@ -21,7 +21,7 @@ export function LeftSidebar({ onClose }: LeftSidebarProps) {
   })
 
   return (
-    <aside className="w-80 border-r border-border bg-card p-6">
+    <aside className="w-80 border-r border-border bg-black p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Filters & Search</h2>
         <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
