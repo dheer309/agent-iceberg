@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
@@ -15,6 +15,7 @@ import { fadeInUp, fadeInLeft, containerVariants, childVariants } from "@/lib/an
 
 export default function CreateProjectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [projectName, setProjectName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -29,6 +30,16 @@ export default function CreateProjectPage() {
   const [promptInput, setPromptInput] = useState("");
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Check for openModal query parameter and open modal automatically
+  useEffect(() => {
+    const openModal = searchParams.get("openModal");
+    if (openModal === "true") {
+      setShowModal(true);
+      // Clean up the URL by removing the query parameter
+      router.replace("/create-project", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // Fetch project response when a project is selected
   useEffect(() => {

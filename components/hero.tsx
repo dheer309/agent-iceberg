@@ -3,13 +3,17 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { Plus, Sparkles, ChevronDown } from "lucide-react";
+import { Plus, Sparkles, ChevronDown, FolderOpen } from "lucide-react";
 import { fadeInUp } from "@/lib/animations";
 
 export function Hero() {
   const router = useRouter();
 
   const handleCreateProject = () => {
+    router.push("/create-project?openModal=true");
+  };
+
+  const handleViewProjects = () => {
     router.push("/create-project");
   };
 
@@ -56,6 +60,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex flex-col sm:flex-row gap-4 items-center justify-center"
         >
           <Button
             size="lg"
@@ -63,7 +68,16 @@ export function Hero() {
             className="shimmer-button group gap-2 relative"
           >
             <Plus className="h-5 w-5 relative z-10" />
-            <span className="relative z-10">Start a New Analysis</span>
+            <span className="relative z-10">Build Pipeline</span>
+          </Button>
+          <Button
+            size="lg"
+            onClick={handleViewProjects}
+            variant="outline"
+            className="group gap-2 relative"
+          >
+            <FolderOpen className="h-5 w-5 relative z-10" />
+            <span className="relative z-10">View Projects</span>
           </Button>
         </motion.div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Hero } from "@/components/hero";
 import GradientBlinds from "@/components/GradientBlinds";
 import { WhatIsSection } from "@/components/landing/what-is-section";
@@ -8,10 +9,26 @@ import { InteractivePreviewSection } from "@/components/landing/interactive-prev
 import { WhyTeamsSection } from "@/components/landing/why-teams-section";
 import { GetStartedSection } from "@/components/landing/get-started-section";
 import { SponsorsSection } from "@/components/landing/sponsors-section";
+import { ScrollIndicator } from "@/components/ScrollIndicator";
 
 export default function HomePage() {
+  useEffect(() => {
+    // Hide default scrollbar on landing page
+    document.body.classList.add("hide-scrollbar");
+    document.documentElement.classList.add("hide-scrollbar");
+
+    return () => {
+      // Cleanup: remove class when component unmounts
+      document.body.classList.remove("hide-scrollbar");
+      document.documentElement.classList.remove("hide-scrollbar");
+    };
+  }, []);
+
   return (
     <div className="relative">
+      {/* Apple Camera-style Scroll Indicator */}
+      <ScrollIndicator />
+
       {/* Hero Section with GradientBlinds background */}
       <div className="relative min-h-screen">
         <div className="absolute inset-0">
