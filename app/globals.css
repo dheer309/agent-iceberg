@@ -87,6 +87,27 @@ body {
   }
 }
 
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
 .shimmer-button {
   position: relative;
   overflow: hidden;
@@ -145,6 +166,35 @@ body {
   height: 0;
 }
 
+/* Custom scrollbar styling */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #27272a #0a0a0a;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0a0a0a;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 5px;
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+}
+
 /* Modal animations */
 @keyframes fade-in {
   from {
@@ -177,4 +227,3 @@ body {
 .zoom-in {
   animation: zoom-in 0.3s ease-out;
 }
-
