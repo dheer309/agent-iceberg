@@ -63,7 +63,7 @@ class Settings:
         "REDTEAM_MODEL",
         "huihui_ai/deepseek-r1-abliterated:8b",
     )
-    ollama_timeout: int = int(os.getenv("OLLAMA_TIMEOUT", "60"))
+    ollama_timeout: int = int(os.getenv("OLLAMA_TIMEOUT", "120"))
 
     @property
     def langsmith_enabled(self) -> bool:

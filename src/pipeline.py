@@ -19,7 +19,7 @@ from .config import Settings, configure_langsmith, get_settings
 from .clients import HolisticAIChatModel
 from .tools import ValyuSearchTool, build_component_catalog_tool
 
-EXECUTION_ORDER = [
+AVAILABLE_NODES = [
     "valyu_search",
     "research_agent",
     "logic_agent",
@@ -255,7 +255,7 @@ class MultiAgentPipeline:
         return state
 
     def regenerate_node(self, state: PipelineState, node_id: str) -> PipelineState:
-        if node_id not in EXECUTION_ORDER:
+        if node_id not in AVAILABLE_NODES:
             return state
         self._invalidate_downstream(state, node_id)
         self._execute_node(state, node_id, use_override=False)
@@ -268,7 +268,7 @@ class MultiAgentPipeline:
         return state
 
     def disable_node(self, state: PipelineState, node_id: str) -> PipelineState:
-        if node_id not in EXECUTION_ORDER:
+        if node_id not in AVAILABLE_NODES:
             return state
         if node_id in state.sequence:
             index = state.sequence.index(node_id)
@@ -526,9 +526,9 @@ class MultiAgentPipeline:
     @staticmethod
     def _normalized_sequence(sequence: Optional[Any]) -> list[str]:
         if not sequence or not isinstance(sequence, list):
-            return EXECUTION_ORDER.copy()
-        filtered = [node for node in sequence if node in EXECUTION_ORDER]
-        return filtered or EXECUTION_ORDER.copy()
+            return [node for node in AVAILABLE_NODES if node != "redteam_agent"]
+        filtered = [node for node in sequence if node in AVAILABLE_NODES]
+        return filtered or [node for node in AVAILABLE_NODES if node != "redteam_agent"]
 
 
 def build_pipeline(settings: Optional[Settings] = None) -> MultiAgentPipeline:
