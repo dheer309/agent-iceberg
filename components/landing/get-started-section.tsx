@@ -1,17 +1,25 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { staggerContainer, childVariants, viewportConfig } from "@/lib/animations"
-import { Play, BookOpen, ArrowRight } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  staggerContainer,
+  childVariants,
+  viewportConfig,
+} from "@/lib/animations";
+import { Play, BookOpen, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function GetStartedSection() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleCreateProject = () => {
-    router.push("/create-project")
-  }
+    router.push("/create-project");
+  };
+
+  const handleDocumentation = () => {
+    router.push("/documentation");
+  };
 
   return (
     <section className="relative bg-background py-24 px-4 sm:px-6 lg:px-8">
@@ -31,7 +39,8 @@ export function GetStartedSection() {
               </span>
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              Start visualizing AI reasoning today. No technical knowledge required.
+              Start visualizing AI reasoning today. No technical knowledge
+              required.
             </p>
           </motion.div>
 
@@ -50,10 +59,10 @@ export function GetStartedSection() {
               <div className="absolute inset-0 rounded-md border-2 border-primary opacity-0 blur-sm transition-opacity group-hover:opacity-50" />
             </Button>
 
-
             <Button
               size="lg"
               variant="ghost"
+              onClick={handleDocumentation}
               className="group gap-2 text-lg transition-all hover:bg-primary/5"
             >
               <BookOpen className="h-5 w-5" />
@@ -63,6 +72,5 @@ export function GetStartedSection() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }
-
