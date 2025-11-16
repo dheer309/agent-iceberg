@@ -99,9 +99,53 @@ export function RightPanel({ projectId, nodeId, onClose }: RightPanelProps) {
       await fetch(`/api/project/${projectId}/node/${nodeId}/delete`, {
         method: "POST",
       });
+      // Trigger graph refresh
+      window.dispatchEvent(new Event("graph-refresh"));
       onClose();
     } catch (error) {
       console.error("[v0] Failed to delete node:", error);
+    }
+  };
+
+  const handleDisable = async () => {
+    try {
+      const response = await fetch(
+        `/api/project/${projectId}/node/${nodeId}/disable`,
+        {
+          method: "POST",
+        }
+      );
+      if (response.ok) {
+        // Trigger graph refresh to show updated disabled state
+        window.dispatchEvent(new Event("graph-refresh"));
+      }
+    } catch (error) {
+      console.error("[v0] Failed to disable node:", error);
+    }
+  };
+
+  const handleRegenerateFromHere = async () => {
+    try {
+      const response = await fetch(
+        `/api/project/${projectId}/node/${nodeId}/regenerate`,
+        {
+          method: "POST",
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        // Trigger regeneration animation first
+        window.dispatchEvent(
+          new CustomEvent("node-regenerate", { detail: { nodeId } })
+        );
+        // Trigger graph refresh after a short delay to remove child nodes
+        // This allows the animation to start before the refresh
+        setTimeout(() => {
+          window.dispatchEvent(new Event("graph-refresh"));
+        }, 100);
+      }
+    } catch (error) {
+      console.error("[v0] Failed to regenerate node:", error);
     }
   };
 
@@ -189,15 +233,19 @@ export function RightPanel({ projectId, nodeId, onClose }: RightPanelProps) {
 
             {/* Actions */}
             <div className="mb-6 space-y-2">
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={handleRegenerateFromHere}
+              >
                 <RefreshCw className="h-4 w-4" />
                 Regenerate from Here
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <GitBranchPlus className="h-4 w-4" />
-                Create Branch
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={handleDisable}
+              >
                 <Ban className="h-4 w-4" />
                 Disable Node
               </Button>

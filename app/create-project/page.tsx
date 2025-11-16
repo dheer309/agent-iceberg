@@ -10,7 +10,7 @@ import { CreateProjectModal } from "@/components/create-project-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Menu, Loader2, Send, Check } from "lucide-react";
+import { Menu, Loader2, Send, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   fadeInUp,
@@ -38,6 +38,8 @@ export default function CreateProjectPage() {
   const [promptInput, setPromptInput] = useState("");
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Check for openModal query parameter and open modal automatically
   useEffect(() => {
@@ -129,11 +131,20 @@ export default function CreateProjectPage() {
             setSelectedProjectId(currentProjectId);
           }
         }, 3000);
+      } else if (response.status === 502) {
+        // Handle external API unavailable error
+        const errorData = await response.json().catch(() => ({}));
+        setErrorMessage(errorData.error || "Unable to process request. External service is unavailable.");
+        setShowErrorModal(true);
       } else {
         console.error("Failed to update project prompt");
+        setErrorMessage("Failed to update project prompt. Please try again.");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Failed to update project prompt:", error);
+      setErrorMessage("Failed to update project prompt. Please try again.");
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +200,21 @@ export default function CreateProjectPage() {
           submitLabel="Got it"
           cancelLabel=""
           icon={<Check className="h-8 w-8 text-primary" />}
+          isLoading={false}
+          initialValue=""
+          showInput={false}
+        />
+
+        {/* Error Modal */}
+        <CreateProjectModal
+          open={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          onSubmit={() => setShowErrorModal(false)}
+          title="Error"
+          description={errorMessage}
+          submitLabel="Got it"
+          cancelLabel=""
+          icon={<AlertCircle className="h-8 w-8 text-destructive" />}
           isLoading={false}
           initialValue=""
           showInput={false}

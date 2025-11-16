@@ -66,8 +66,58 @@ body {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+  border-color: rgba(234, 179, 8, 0.8) !important;
+}
+
 .glow-subtle {
   box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+}
+
+/* Yellow glow animation for regeneration */
+@keyframes glow-yellow-pulse {
+  0% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+    border-color: rgba(234, 179, 8, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(234, 179, 8, 1);
+    border-color: rgba(234, 179, 8, 1);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+    border-color: rgba(234, 179, 8, 0.8);
+  }
+}
+
+@keyframes glow-yellow-fade {
+  0% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+    border-color: rgba(234, 179, 8, 0.8);
+  }
+  100% {
+    box-shadow: none;
+    border-color: var(--color-border);
+  }
+}
+
+.node-regenerating {
+  animation: glow-yellow-pulse 0.5s ease-in-out infinite;
+}
+
+.node-regenerating-fade {
+  animation: glow-yellow-fade 3s ease-out forwards;
+}
+
+/* Disabled node styling */
+.node-disabled {
+  color: #52525b !important;
+  opacity: 0.6;
+}
+
+.node-disabled * {
+  color: #52525b !important;
 }
 
 /* Smooth animations */

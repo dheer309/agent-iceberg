@@ -2,6 +2,7 @@
 export const mockProjectsStore: Record<
   string,
   {
+    sessionID: string;
     id: string;
     name: string;
     nodeCount: number;
@@ -11,6 +12,7 @@ export const mockProjectsStore: Record<
   }
 > = {
   "1": {
+    sessionID: "",
     id: "1",
     name: "Customer Query Analysis",
     nodeCount: 24,
@@ -41,6 +43,7 @@ A deeper dive into the data reveals the top entities consistently being extracte
 The project's classified and enriched output currently serves as the indispensable input for our global Level 1 Triage System. Since deployment, the model has consistently maintained an impressive **92% first-pass accuracy** rate in initial intent classification, dramatically reducing the mean time to resolution (MTTR) by an average of 15%. Furthermore, the model has demonstrated an $F_1$ score of **0.88** for entity extraction, proving its reliability in extracting critical customer data necessary for swift service recovery. The last update to this system's configuration and model weights was applied on **Updated at: $2025-11-15T15:20:19.000Z$**, highlighting its active maintenance schedule."`,
   },
   "2": {
+    sessionID: "",
     id: "2",
     name: "Medical Diagnosis Review",
     nodeCount: 18,
@@ -65,6 +68,7 @@ The system's **risk stratification score** for this specific cohort averaged a $
 The **18 nodes** are consistently processing an average of **200 patient records per hour**, with a mean review time of less than 15 minutes per case, which includes data ingestion, feature extraction, and output generation. The current training corpus encompasses over **1 million anonymized patient records** and is continuously updated to maintain a high level of clinical relevance and predictive power. This iteration of the project, last updated on **Updated at: $2025-11-14T17:20:36.000Z$**, is primarily focused on improving the $F_1$ score for differentiation between benign and malignant liver lesions in CT scans, aiming for a target score of $0.95$."`,
   },
   "3": {
+    sessionID: "",
     id: "3",
     name: "Code Analysis Trace",
     nodeCount: 42,
@@ -82,12 +86,31 @@ Furthermore, the **Code Analysis Trace** system is equipped with an advanced **f
 
 "The Code Analysis Trace system, known internally as 'Project Cerberus', represents our cutting-edge defense against zero-day exploits and deeply embedded logical flaws. With **42 high-utilization nodes** dedicated to parallel execution tracing, the system is engineered to handle massive, complex enterprise applications, performing a full trace on a 10-million-line codebase in under four hours.`
   },
-  "1763229663189": {
-    id: "1763229663189",
-    name: "curry",
+  "1763294593331": {
+    id: "1763294593331",
+    name: "test payload",
     nodeCount: 0,
-    updatedAt: "2025-11-15T18:01:03.189Z",
-    userPrompt: "",
+    updatedAt: "2025-11-16T12:03:13.331Z",
+    userPrompt: "create the recipe for lemon chicken",
+    sessionID: "84417e91-ef3e-4087-bec3-a5bbef55b9a7",
+    response: ``,
+  },
+  "1763302081768": {
+    id: "1763302081768",
+    name: "new project",
+    nodeCount: 0,
+    updatedAt: "2025-11-16T14:08:01.768Z",
+    userPrompt: "how do i cook fried rice",
+    sessionID: "93876035-a207-4749-9918-3ede71a57bb4",
+    response: ``,
+  },
+  "1763302289990": {
+    id: "1763302289990",
+    name: "new project -2",
+    nodeCount: 0,
+    updatedAt: "2025-11-16T14:11:29.990Z",
+    userPrompt: "how do i cook steamed fish?",
+    sessionID: "85a2cdeb-d4ee-4e80-97d6-fe7803e3a816",
     response: ``,
   },
 };

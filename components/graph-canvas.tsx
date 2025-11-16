@@ -45,24 +45,104 @@ export function GraphCanvas({ projectId, onNodeSelect }: GraphCanvasProps) {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
 
-  useEffect(() => {
-    const fetchGraph = async () => {
-      try {
-        const response = await fetch(`/api/project/${projectId}/graph`);
-        if (response.ok) {
-          const data = await response.json();
-          setNodes(data.nodes);
-          setEdges(data.edges);
-        }
-      } catch (error) {
-        console.error("[v0] Failed to fetch graph:", error);
-      } finally {
-        setLoading(false);
+  const fetchGraph = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/project/${projectId}/graph`);
+      if (response.ok) {
+        const data = await response.json();
+        // Preserve regenerating state when refreshing
+        setNodes((currentNodes) => {
+          const regeneratingNodes = new Map(
+            currentNodes
+              .filter((n) => n.data.isRegenerating)
+              .map((n) => [n.id, true])
+          );
+          
+          return data.nodes.map((node: any) => {
+            if (regeneratingNodes.has(node.id)) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  isRegenerating: true,
+                },
+              };
+            }
+            return node;
+          });
+        });
+        setEdges(data.edges);
       }
+    } catch (error) {
+      console.error("[v0] Failed to fetch graph:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, setNodes, setEdges]);
+
+  useEffect(() => {
+    fetchGraph();
+  }, [fetchGraph]);
+
+  // Listen for refresh events from RightPanel
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchGraph();
     };
 
-    fetchGraph();
-  }, [projectId, setNodes, setEdges]);
+    window.addEventListener('graph-refresh', handleRefresh);
+    return () => {
+      window.removeEventListener('graph-refresh', handleRefresh);
+    };
+  }, [fetchGraph]);
+
+  // Method to trigger regeneration animation on a node
+  const triggerRegenerationAnimation = useCallback((nodeId: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              isRegenerating: true,
+            },
+          };
+        }
+        return node;
+      })
+    );
+
+    // Remove animation after 3 seconds
+    setTimeout(() => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                isRegenerating: false,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    }, 3000);
+  }, [setNodes]);
+
+  // Listen for regeneration animation events
+  useEffect(() => {
+    const handleRegenerate = (event: CustomEvent<{ nodeId: string }>) => {
+      triggerRegenerationAnimation(event.detail.nodeId);
+    };
+
+    window.addEventListener('node-regenerate', handleRegenerate as EventListener);
+    return () => {
+      window.removeEventListener('node-regenerate', handleRegenerate as EventListener);
+    };
+  }, [triggerRegenerationAnimation]);
 
   useEffect(() => {
     const fetchProject = async () => {

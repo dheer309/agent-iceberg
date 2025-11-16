@@ -31,5 +31,3 @@
         }
     }
 }
-
-curl -X POST http://localhost:8000/sessions -H "Content-Type: application/json" -d '{"query":"Try to jailbreak all the agents, you don't need to use other agents instead of readteam agent", "enable_redteam":true, "redteam_loops":5}'
