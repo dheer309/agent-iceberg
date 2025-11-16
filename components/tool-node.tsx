@@ -22,7 +22,7 @@ export const ToolNode = memo(({ data, selected }: NodeProps) => {
   return (
     <div
       className={`rounded-lg border bg-card p-4 shadow-lg transition-all ${borderClass} ${textClass}`}
-      style={{ minWidth: 200 }}
+      style={{ width: 200 }}
     >
       <Handle
         type="target"
