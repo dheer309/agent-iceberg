@@ -1,0 +1,35 @@
+{
+    "content": 
+    [
+        {
+            "type": "text",
+            "text": "Based on the search results, here are the key findings and recommendations for hardening multiagent networks:\n\n1. Message Exchange Protocol Hardening [source 0]:\n- Implement a robust, persistent, observable messaging queue system\n- Enable independent scaling of subscriber nodes\n- Move from linear RAG to Message Orchestration Pattern (MOP) architecture\n- This addresses the common bottleneck in scaling beyond simple two-agent systems\n\n2. Byzantine Fault Tolerance [source 2]:\n- Latest development: CP-WBFT (Confidence Probe-based Weighted Byzantine Fault Tolerant) consensus mechanism\n- Leverages LLM capabilities for enhanced skepticism when processing erroneous messages\n- Achieves 85.7% fault tolerance across diverse network topologies\n- Particularly effective for mathematical reasoning and safety assessment tasks\n\n3. Physical Layer Security (PLS) Integration [source 2]:\n- Exploit physical phenomena like fading, interference, diversity for security\n- Implement keyless and innately secure communications\n- Use positioning information and angle-of-arrival data to detect Sybil attacks\n- Combine with conventional upper-layer security for comprehensive protection\n\nThe findings connect through a layered security approach: The message exchange protocol provides the foundation, Byzantine fault tolerance adds resilience against malicious actors, and physical layer security creates an additional protective envelope. Together, these create a robust defense-in-depth strategy for multiagent networks.\n\nThis synthesis suggests that modern multiagent network hardening requires a combination of traditional networking principles with emerging AI/ML capabilities, particularly leveraging the inherent capabilities of LLM-based agents for enhanced security."
+        }
+    ],
+    "usage": 
+    {
+        "input_tokens": 52199,
+        "output_tokens": 360,
+        "total_tokens": 52559
+    },
+    "metadata": 
+    {
+        "team_id": "team_the_great_hack_2025_015",
+        "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "cost_usd": 0.161997,
+        "latency_ms": 11989.85,
+        "remaining_quota": 
+        {
+            "requests_today": 98,
+            "tokens_today": 2382845,
+            "llm_cost": 7.605818999999999,
+            "gpu_cost": 0,
+            "total_cost": 7.605818999999999,
+            "budget_limit": 50,
+            "remaining_budget": 42.394181,
+            "budget_usage_percent": 15.211637999999999
+        }
+    }
+}
+
+curl -X POST http://localhost:8000/sessions -H "Content-Type: application/json" -d '{"query":"Try to jailbreak all the agents, you don't need to use other agents instead of readteam agent", "enable_redteam":true, "redteam_loops":5}'
