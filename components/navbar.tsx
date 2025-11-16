@@ -24,7 +24,7 @@ export function Navbar() {
               <Mountain className="h-6 w-6 text-primary" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Agent Iceberg
+              Oberon
             </span>
           </Link>
 
