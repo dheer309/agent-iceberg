@@ -1,11 +1,21 @@
-import { ProjectWorkspace } from '@/components/project-workspace'
+"use client"
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
+import { useParams } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { ProjectWorkspace } from '@/components/project-workspace'
+import { fadeInUp } from '@/lib/animations'
+
+export default function ProjectPage() {
+  const params = useParams()
+  const id = params.id as string
   
-  return <ProjectWorkspace projectId={id} />
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeInUp}
+    >
+      <ProjectWorkspace projectId={id} />
+    </motion.div>
+  )
 }

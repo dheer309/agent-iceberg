@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, X, Clock, MessageSquare, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Project {
   id: string;
@@ -127,7 +128,7 @@ export function ProjectSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static top-16 bottom-0 left-0 z-50 w-64 border-r border-border bg-black transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none",
+          "fixed lg:static top-16 bottom-0 left-0 z-50 w-64 h-[calc(100vh-4rem)] border-r border-border bg-black transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -164,17 +165,35 @@ export function ProjectSidebar({
           </div>
 
           {/* Projects List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0 p-2">
             {loading ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Loading...
-              </div>
+              <>
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-lg border border-transparent mb-1"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 flex-shrink-0">
+                        <Skeleton className="h-4 w-4 rounded" />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-3 w-3 rounded" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : projects.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 No projects yet
               </div>
             ) : (
-              <div className="p-2">
+              <>
                 {projects.map((project) => {
                   const handleClick = (e: React.MouseEvent) => {
                     if (onProjectClick) {
@@ -222,7 +241,7 @@ export function ProjectSidebar({
                     </Link>
                   );
                 })}
-              </div>
+              </>
             )}
           </div>
         </div>

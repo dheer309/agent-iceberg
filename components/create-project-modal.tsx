@@ -18,6 +18,7 @@ interface CreateProjectModalProps {
   icon?: React.ReactNode;
   isLoading?: boolean;
   initialValue?: string;
+  showInput?: boolean;
 }
 
 export function CreateProjectModal({
@@ -32,6 +33,7 @@ export function CreateProjectModal({
   icon,
   isLoading = false,
   initialValue = "",
+  showInput = true,
 }: CreateProjectModalProps) {
   const [inputValue, setInputValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,9 +58,9 @@ export function CreateProjectModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inputValue.trim() || isLoading) return;
+    if (showInput && (!inputValue.trim() || isLoading)) return;
 
-    await onSubmit(inputValue.trim());
+    await onSubmit(showInput ? inputValue.trim() : "");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -117,39 +119,46 @@ export function CreateProjectModal({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder}
-                disabled={isLoading}
-                className={cn(
-                  "w-full h-12 text-base",
-                  "bg-white/5 border-white/10",
-                  "focus-visible:border-primary/50 focus-visible:ring-primary/20",
-                  "backdrop-blur-sm",
-                  "placeholder:text-muted-foreground/50"
-                )}
-              />
-            </div>
+            {showInput && (
+              <div className="space-y-2">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={placeholder}
+                  disabled={isLoading}
+                  className={cn(
+                    "w-full h-12 text-base",
+                    "bg-white/5 border-white/10",
+                    "focus-visible:border-primary/50 focus-visible:ring-primary/20",
+                    "backdrop-blur-sm",
+                    "placeholder:text-muted-foreground/50"
+                  )}
+                />
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isLoading}
-                className="flex-1 border-white/10 bg-white/5 hover:bg-white/10"
-              >
-                {cancelLabel}
-              </Button>
+              {cancelLabel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isLoading}
+                  className="flex-1 border-white/10 bg-white/5 hover:bg-white/10"
+                >
+                  {cancelLabel}
+                </Button>
+              )}
               <Button
                 type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                className="flex-1 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-primary/50"
+                disabled={(showInput && !inputValue.trim()) || isLoading}
+                className={cn(
+                  "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-primary/50",
+                  cancelLabel ? "flex-1" : "w-full"
+                )}
               >
                 {isLoading ? (
                   <>
@@ -167,4 +176,3 @@ export function CreateProjectModal({
     </div>
   );
 }
-

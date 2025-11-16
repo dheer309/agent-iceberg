@@ -32,6 +32,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
         
         {selectedNodeId && (
           <RightPanel 
+            key={selectedNodeId}
             projectId={projectId}
             nodeId={selectedNodeId}
             onClose={() => setSelectedNodeId(null)}
