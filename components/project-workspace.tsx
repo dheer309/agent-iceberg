@@ -20,7 +20,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
       
       <div className="flex flex-1 overflow-hidden">
         {leftSidebarOpen && (
-          <LeftSidebar onClose={() => setLeftSidebarOpen(false)} />
+          <LeftSidebar projectId={projectId} onClose={() => setLeftSidebarOpen(false)} />
         )}
         
         <main className="flex-1 overflow-hidden">

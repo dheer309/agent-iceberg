@@ -94,6 +94,41 @@ export function RightPanel({ projectId, nodeId, onClose }: RightPanelProps) {
     }
   };
 
+  const handleModifyAndRegenerate = async () => {
+    if (!editInstruction.trim()) return;
+
+    setIsRegenerating(true);
+    try {
+      // Call the Next.js API route which will proxy to the external override API
+      const overrideResponse = await fetch(
+        `/api/project/${projectId}/node/${nodeId}/override`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: editInstruction,
+          }),
+        }
+      );
+
+      if (!overrideResponse.ok) {
+        const errorData = await overrideResponse.json();
+        throw new Error(
+          errorData.error || `Override API returned status ${overrideResponse.status}`
+        );
+      }
+
+      // Clear the instruction and trigger graph refresh on success
+      setEditInstruction("");
+      window.dispatchEvent(new Event("graph-refresh"));
+    } catch (error) {
+      console.error("[v0] Failed to modify and regenerate node:", error);
+      // You could add user-facing error notification here if needed
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const handleDelete = async () => {
     try {
       await fetch(`/api/project/${projectId}/node/${nodeId}/delete`, {
@@ -213,7 +248,7 @@ export function RightPanel({ projectId, nodeId, onClose }: RightPanelProps) {
                 className="mb-2"
               />
               <Button
-                onClick={handleRegenerate}
+                onClick={handleModifyAndRegenerate}
                 disabled={!editInstruction.trim() || isRegenerating}
                 className="w-full gap-2 bg-primary hover:bg-primary/90"
               >

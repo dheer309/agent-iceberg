@@ -53,7 +53,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mx-auto mb-8 max-w-2xl text-xl text-muted-foreground text-pretty"
         >
-          A visual AI builder that adapts to how you think, not the other way around.
+          Trace it. Tune it. Trust it.
         </motion.p>
 
         <motion.div
