@@ -14,9 +14,9 @@ export default function HelpPage() {
         initial="hidden"
         animate="visible"
         variants={fadeInUp}
-        className="border-b border-border bg-card pt-20"
+        className="border-b border-border bg-black pt-15"
       >
-        <div className="mx-auto max-w-5xl px-4 py-4">
+        <div className="mx-auto max-w-5xl px-4 py-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/">
