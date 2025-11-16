@@ -1,19 +1,26 @@
-import { HistoryTimeline } from '@/components/history-timeline'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+"use client";
 
-export default async function HistoryPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-  
+import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { HistoryTimeline } from "@/components/history-timeline";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { fadeInUp, staggerContainer, childVariants } from "@/lib/animations";
+
+export default function HistoryPage() {
+  const params = useParams();
+  const id = params.id as string;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card pt-20">
-        <div className="mx-auto max-w-5xl px-4 py-4">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        className="border-b border-border bg-black pt-15"
+      >
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href={`/project/${id}`}>
@@ -28,11 +35,17 @@ export default async function HistoryPage({
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="mx-auto max-w-5xl px-4 py-8">
+      </motion.div>
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        transition={{ delay: 0.1 }}
+        className="mx-auto max-w-5xl px-4 py-8"
+      >
         <HistoryTimeline projectId={id} />
-      </div>
+      </motion.div>
     </div>
-  )
+  );
 }

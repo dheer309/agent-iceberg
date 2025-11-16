@@ -1,13 +1,22 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { SettingsForm } from "@/components/settings-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { fadeInUp } from "@/lib/animations";
 
 export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card pt-20">
-        <div className="mx-auto max-w-4xl px-4 py-4">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        className="border-b border-border bg-black pt-15"
+      >
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/">
@@ -22,11 +31,17 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        transition={{ delay: 0.1 }}
+        className="mx-auto max-w-4xl px-4 py-8"
+      >
         <SettingsForm />
-      </div>
+      </motion.div>
     </div>
   );
 }
