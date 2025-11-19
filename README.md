@@ -1,8 +1,8 @@
-# Observable AI
+# Oberon
 
 > **Manufacturing AI Thoughts** — A visual AI builder that adapts to how you think, not the other way around.
 
-Observable AI is a Next.js application that provides an interactive, visual interface for understanding and exploring AI reasoning processes. The platform transforms complex AI decision-making workflows into intuitive graph visualizations, allowing users to inspect, modify, and regenerate AI reasoning steps in real-time.
+Oberon is a Next.js application that provides an interactive, visual interface for understanding and exploring AI reasoning processes. The platform transforms complex AI decision-making workflows into intuitive graph visualizations, allowing users to inspect, modify, and regenerate AI reasoning steps in real-time.
 
 ## 🎯 Overview
 
@@ -184,24 +184,5 @@ The application uses a custom design system built on:
 - `PUT /api/project/[id]/node/[nodeId]/modify` - Modify node
 - `DELETE /api/project/[id]/node/[nodeId]/delete` - Delete node
 - `GET /api/project/[id]/node/[nodeId]/audit-logs` - Get node audit logs
-
-## 🗺️ Roadmap
-
-- [ ] Database integration (currently uses mock data)
-- [ ] Real AI model integration
-- [ ] Collaborative features
-- [ ] Export/import functionality
-- [ ] Advanced node editing capabilities
-- [ ] Performance optimizations for large graphs
-
-## 📄 License
-
-This project is private and proprietary.
-
-## 🤝 Contributing
-
-This is a private project. For questions or suggestions, please contact the project maintainers.
-
----
 
 **Built with ❤️ using Next.js and React**
